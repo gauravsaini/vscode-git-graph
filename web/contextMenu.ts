@@ -53,13 +53,13 @@ class ContextMenu {
 			let groupHtml = '';
 			for (let j = 0; j < actions[i].length; j++) {
 				if (actions[i][j].visible) {
-					groupHtml += '<li class="contextMenuItem" data-index="' + handlerId++ + '">' + (checked ? '<span class="contextMenuItemCheck">' + (actions[i][j].checked ? SVG_ICONS.check : '') + '</span>' : '') + actions[i][j].title + '</li>';
+					groupHtml += '<li class="contextMenuItem" data-index="' + handlerId++ + '" role="menuitem" tabindex="-1">' + (checked ? '<span class="contextMenuItemCheck">' + (actions[i][j].checked ? SVG_ICONS.check : '') + '</span>' : '') + actions[i][j].title + '</li>';
 					handlers.push(actions[i][j].onClick);
 				}
 			}
 
 			if (groupHtml !== '') {
-				if (html !== '') html += '<li class="contextMenuDivider"></li>';
+				if (html !== '') html += '<li class="contextMenuDivider" role="separator"></li>';
 				html += groupHtml;
 			}
 		}
@@ -68,6 +68,7 @@ class ContextMenu {
 
 		const menu = document.createElement('ul');
 		menu.className = 'contextMenu' + (checked ? ' checked' : '') + (className !== null ? ' ' + className : '');
+		menu.setAttribute('role', 'menu');
 		menu.style.opacity = '0';
 		menu.innerHTML = html;
 		frameElem.appendChild(menu);
@@ -87,6 +88,44 @@ class ContextMenu {
 		menu.style.opacity = '1';
 		this.elem = menu;
 		this.onClose = onClose;
+
+		// Focus the first item
+		const firstItem = <HTMLElement>menu.querySelector('.contextMenuItem');
+		if (firstItem) firstItem.focus();
+
+		const keyHandler = (e: KeyboardEvent) => {
+			if (this.elem === null) return;
+			const target = <HTMLElement>e.target;
+			if (!target.classList.contains('contextMenuItem')) return;
+
+			if (e.key === 'ArrowDown') {
+				let next = <HTMLElement>target.nextElementSibling;
+				while (next && !next.classList.contains('contextMenuItem')) {
+					next = <HTMLElement>next.nextElementSibling;
+				}
+				if (next) next.focus();
+				e.preventDefault();
+				e.stopPropagation();
+			} else if (e.key === 'ArrowUp') {
+				let prev = <HTMLElement>target.previousElementSibling;
+				while (prev && !prev.classList.contains('contextMenuItem')) {
+					prev = <HTMLElement>prev.previousElementSibling;
+				}
+				if (prev) prev.focus();
+				e.preventDefault();
+				e.stopPropagation();
+			} else if (e.key === 'Enter' || e.key === ' ') {
+				e.preventDefault();
+				e.stopPropagation();
+				this.close();
+				handlers[parseInt(target.dataset.index!)]();
+			} else if (e.key === 'Escape') {
+				e.preventDefault();
+				e.stopPropagation();
+				this.close();
+			}
+		};
+		menu.addEventListener('keydown', keyHandler);
 
 		addListenerToClass('contextMenuItem', 'click', (e) => {
 			// The user clicked on a context menu item => call the corresponding handler

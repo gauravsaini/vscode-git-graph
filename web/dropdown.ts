@@ -60,6 +60,11 @@ class Dropdown {
 
 		this.currentValueElem = this.elem.appendChild(document.createElement('div'));
 		this.currentValueElem.className = 'dropdownCurrentValue';
+		this.currentValueElem.tabIndex = 0;
+		this.currentValueElem.setAttribute('role', 'button');
+		this.currentValueElem.setAttribute('aria-haspopup', 'listbox');
+		this.currentValueElem.setAttribute('aria-expanded', 'false');
+		this.currentValueElem.setAttribute('aria-label', dropdownType + ' Dropdown');
 
 		alterClass(this.elem, 'multi', multipleAllowed);
 		this.elem.appendChild(this.menuElem);
@@ -67,13 +72,7 @@ class Dropdown {
 		document.addEventListener('click', (e) => {
 			if (!e.target) return;
 			if (e.target === this.currentValueElem) {
-				this.dropdownVisible = !this.dropdownVisible;
-				if (this.dropdownVisible) {
-					this.filterInput.value = '';
-					this.filter();
-				}
-				this.elem.classList.toggle('dropdownOpen');
-				if (this.dropdownVisible) this.filterInput.focus();
+				this.toggle();
 			} else if (this.dropdownVisible) {
 				if ((<HTMLElement>e.target).closest('.dropdown') !== this.elem) {
 					this.close();
@@ -86,7 +85,60 @@ class Dropdown {
 			}
 		}, true);
 		document.addEventListener('contextmenu', () => this.close(), true);
-		this.filterInput.addEventListener('keyup', () => this.filter());
+		this.currentValueElem.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				this.toggle();
+				e.preventDefault();
+			}
+		});
+		this.filterInput.addEventListener('keyup', (e) => {
+			if (e.key === 'ArrowDown') {
+				if (this.optionsElem.children.length > 0) {
+					(<HTMLElement>this.optionsElem.children[0]).focus();
+				}
+			} else {
+				this.filter();
+			}
+		});
+		this.optionsElem.addEventListener('keydown', (e) => {
+			const target = <HTMLElement>e.target;
+			if (!target.classList.contains('dropdownOption')) return;
+			
+			if (e.key === 'ArrowDown') {
+				const next = <HTMLElement>target.nextElementSibling;
+				if (next) next.focus();
+				e.preventDefault();
+			} else if (e.key === 'ArrowUp') {
+				const prev = <HTMLElement>target.previousElementSibling;
+				if (prev) {
+					prev.focus();
+				} else {
+					this.filterInput.focus();
+				}
+				e.preventDefault();
+			} else if (e.key === 'Enter' || e.key === ' ') {
+				this.onOptionClick(parseInt(target.dataset.id!));
+				e.preventDefault();
+			} else if (e.key === 'Escape') {
+				this.close();
+				this.currentValueElem.focus();
+				e.preventDefault();
+			}
+		});
+	}
+
+	/**
+	 * Toggle the dropdown visibility.
+	 */
+	public toggle() {
+		this.dropdownVisible = !this.dropdownVisible;
+		if (this.dropdownVisible) {
+			this.filterInput.value = '';
+			this.filter();
+		}
+		this.elem.classList.toggle('dropdownOpen');
+		this.currentValueElem.setAttribute('aria-expanded', this.dropdownVisible.toString());
+		if (this.dropdownVisible) this.filterInput.focus();
 	}
 
 	/**
@@ -208,6 +260,7 @@ class Dropdown {
 	public close() {
 		this.elem.classList.remove('dropdownOpen');
 		this.dropdownVisible = false;
+		this.currentValueElem.setAttribute('aria-expanded', 'false');
 		this.clearDoubleClickTimeout();
 	}
 
@@ -224,13 +277,14 @@ class Dropdown {
 		let html = '';
 		for (let i = 0; i < this.options.length; i++) {
 			const escapedName = escapeHtml(this.options[i].name);
-			html += '<div class="dropdownOption' + (this.optionsSelected[i] ? ' ' + CLASS_SELECTED : '') + '" data-id="' + i + '" title="' + escapedName + '">' +
+			html += '<div class="dropdownOption' + (this.optionsSelected[i] ? ' ' + CLASS_SELECTED : '') + '" data-id="' + i + '" title="' + escapedName + '" tabindex="-1" role="option" aria-selected="' + this.optionsSelected[i] + '">' +
 				(this.multipleAllowed && this.optionsSelected[i] ? '<div class="dropdownOptionMultiSelected">' + SVG_ICONS.check + '</div>' : '') +
 				escapedName + (typeof this.options[i].hint === 'string' && this.options[i].hint !== '' ? '<span class="dropdownOptionHint">' + escapeHtml(this.options[i].hint!) + '</span>' : '') +
 				(this.showInfo ? '<div class="dropdownOptionInfo" title="' + escapeHtml(this.options[i].value) + '">' + SVG_ICONS.info + '</div>' : '') +
 				'</div>';
 		}
 		this.optionsElem.className = 'dropdownOptions' + (this.showInfo ? ' showInfo' : '');
+		this.optionsElem.setAttribute('role', 'listbox');
 		this.optionsElem.innerHTML = html;
 		this.filterInput.style.display = 'none';
 		this.noResultsElem.style.display = 'none';

@@ -1,0 +1,28 @@
+Task: Improve Accessibility & Keyboard Navigation (#865)
+
+Status: Completed
+
+Changes:
+1.  Dropdown Accessibility (`web/dropdown.ts`):
+    - Added `tabIndex="0"` and keyboard support (Enter/Space) to triggers.
+    - Added ARIA roles: `combobox`, `listbox`, `option`.
+    - Added `aria-expanded`, `aria-selected` attributes.
+    - Implemented Arrow key navigation and Focus management.
+
+2.  Dialog Accessibility (`web/dialog.ts`):
+    - Added `role="dialog"` and `aria-modal="true"`.
+    - Implemented focus trapping.
+    - Made dialog buttons keyboard accessible (`role="button"`, `tabIndex="0"`).
+    - Improved `CustomSelect` with ARIA attributes.
+
+3.  Context Menu Accessibility (`web/contextMenu.ts`):
+    - Added `role="menu"`, `role="menuitem"`, `role="separator"`.
+    - Implemented keyboard navigation (ArrowUp, ArrowDown, Enter, Escape).
+    - Added initial focus to first menu item.
+
+4.  Main View Accessibility (`web/main.ts`):
+    - Made top bar buttons (`Refresh`, `Fetch`, `Find`, `Settings`, `Terminal`) keyboard accessible.
+    - Made `Load More Commits` button keyboard accessible.
+
+5.  Utils (`web/utils.ts`):
+    - Added `makeButtonAccessible` helper function.

@@ -103,6 +103,7 @@ class GitGraphView {
 				this.refresh(true, true);
 			}
 		});
+		makeButtonAccessible(this.refreshBtnElem);
 		this.renderRefreshButton();
 
 		this.findWidget = new FindWidget(this);
@@ -149,10 +150,13 @@ class GitGraphView {
 		fetchBtn.title = 'Fetch' + (this.config.fetchAndPrune ? ' & Prune' : '') + ' from Remote(s)';
 		fetchBtn.innerHTML = SVG_ICONS.download;
 		fetchBtn.addEventListener('click', () => this.fetchFromRemotesAction());
+		makeButtonAccessible(fetchBtn);
 		findBtn.innerHTML = SVG_ICONS.search;
 		findBtn.addEventListener('click', () => this.findWidget.show(true));
+		makeButtonAccessible(findBtn);
 		settingsBtn.innerHTML = SVG_ICONS.gear;
 		settingsBtn.addEventListener('click', () => this.settingsWidget.show(this.currentRepo));
+		makeButtonAccessible(settingsBtn);
 		terminalBtn.innerHTML = SVG_ICONS.terminal;
 		terminalBtn.addEventListener('click', () => {
 			runAction({
@@ -161,6 +165,7 @@ class GitGraphView {
 				name: this.gitRepos[this.currentRepo].name || getRepoName(this.currentRepo)
 			}, 'Opening Terminal');
 		});
+		makeButtonAccessible(terminalBtn);
 	}
 
 
@@ -873,15 +878,17 @@ class GitGraphView {
 				'</tr>';
 		}
 		this.tableElem.innerHTML = '<table>' + html + '</table>';
-		this.footerElem.innerHTML = this.moreCommitsAvailable ? '<div id="loadMoreCommitsBtn" class="roundedBtn">Load More Commits</div>' : '';
+		this.footerElem.innerHTML = this.moreCommitsAvailable ? '<div id="loadMoreCommitsBtn" class="roundedBtn" role="button" tabindex="0">Load More Commits</div>' : '';
 		this.makeTableResizable();
 		this.findWidget.refresh();
 		this.renderedGitBranchHead = this.gitBranchHead;
 
 		if (this.moreCommitsAvailable) {
-			document.getElementById('loadMoreCommitsBtn')!.addEventListener('click', () => {
+			const loadMoreCommitsBtn = document.getElementById('loadMoreCommitsBtn')!;
+			loadMoreCommitsBtn.addEventListener('click', () => {
 				this.loadMoreCommits();
 			});
+			makeButtonAccessible(loadMoreCommitsBtn);
 		}
 
 		if (this.expandedCommit !== null) {

@@ -340,8 +340,10 @@ class Dialog {
 
 		const dialog = document.createElement('div'), dialogContent = document.createElement('div');
 		dialog.className = 'dialog';
+		dialog.setAttribute('role', 'dialog');
+		dialog.setAttribute('aria-modal', 'true');
 		dialogContent.className = 'dialogContent';
-		dialogContent.innerHTML = html + '<br>' + (actionName !== null ? '<div id="dialogAction" class="roundedBtn">' + actionName + '</div>' : '') + '<div id="dialogSecondaryAction" class="roundedBtn">' + secondaryActionName + '</div>';
+		dialogContent.innerHTML = html + '<br>' + (actionName !== null ? '<div id="dialogAction" class="roundedBtn" role="button" tabindex="0">' + actionName + '</div>' : '') + '<div id="dialogSecondaryAction" class="roundedBtn" role="button" tabindex="0">' + secondaryActionName + '</div>';
 		dialog.appendChild(dialogContent);
 		this.elem = dialog;
 		document.body.appendChild(dialog);
@@ -353,10 +355,56 @@ class Dialog {
 		}
 		dialog.style.top = Math.max(Math.round((docHeight - dialogHeight) / 2), 10) + 'px';
 		if (actionName !== null && actioned !== null) {
-			document.getElementById('dialogAction')!.addEventListener('click', actioned);
+			const dialogAction = document.getElementById('dialogAction')!;
+			dialogAction.addEventListener('click', actioned);
+			dialogAction.addEventListener('keydown', (e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					actioned();
+					e.preventDefault();
+					e.stopPropagation();
+				}
+			});
 			this.actioned = actioned;
 		}
-		document.getElementById('dialogSecondaryAction')!.addEventListener('click', secondaryActioned !== null ? secondaryActioned : () => this.close());
+		const dialogSecondaryAction = document.getElementById('dialogSecondaryAction')!;
+		const secondaryHandler = secondaryActioned !== null ? secondaryActioned : () => this.close();
+		dialogSecondaryAction.addEventListener('click', secondaryHandler);
+		dialogSecondaryAction.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' || e.key === ' ') {
+				secondaryHandler();
+				e.preventDefault();
+				e.stopPropagation();
+			}
+		});
+
+		// Trap focus
+		const focusableElementsString = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [tabindex="0"]';
+		const focusableElements = <NodeListOf<HTMLElement>>dialog.querySelectorAll(focusableElementsString);
+		if (focusableElements.length > 0) {
+			const firstTabStop = focusableElements[0];
+			const lastTabStop = focusableElements[focusableElements.length - 1];
+
+			dialog.addEventListener('keydown', (e) => {
+				if (e.key === 'Tab') {
+					if (e.shiftKey) {
+						if (document.activeElement === firstTabStop) {
+							e.preventDefault();
+							lastTabStop.focus();
+						}
+					} else {
+						if (document.activeElement === lastTabStop) {
+							e.preventDefault();
+							firstTabStop.focus();
+						}
+					}
+				}
+			});
+			
+			// Initial focus is handled in showForm or specific methods, but as a fallback:
+			// firstTabStop.focus(); 
+			// We won't force focus here as showForm handles it specifically for inputs.
+		}
+
 
 		if (this.target !== null && this.target.type !== TargetType.Repo) {
 			alterClass(this.target.elem, CLASS_DIALOG_ACTIVE, true);
@@ -497,6 +545,9 @@ class CustomSelect {
 		const currentElem = document.createElement('div');
 		currentElem.className = 'customSelectCurrent';
 		currentElem.tabIndex = tabIndex;
+		currentElem.setAttribute('role', 'combobox');
+		currentElem.setAttribute('aria-expanded', 'false');
+		currentElem.setAttribute('aria-haspopup', 'listbox');
 		this.currentElem = currentElem;
 		container.appendChild(currentElem);
 
@@ -664,9 +715,10 @@ class CustomSelect {
 				this.optionsElem.style.width = currentElemRect.width + 'px';
 				this.optionsElem.style.maxHeight = Math.max(document.body.clientHeight - currentElemRect.top - currentElemRect.height - 2, 50) + 'px';
 				this.optionsElem.className = 'customSelectOptions' + (this.data.multiple ? ' multiple' : '');
+				this.optionsElem.setAttribute('role', 'listbox');
 				const icon = this.data.multiple ? '<div class="selectedIcon">' + SVG_ICONS.check + '</div>' : '';
 				this.optionsElem.innerHTML = this.data.options.map((option, index) =>
-					'<div class="customSelectOption" data-index="' + index + '">' + icon + escapeHtml(option.name) + '</div>'
+					'<div class="customSelectOption" data-index="' + index + '" role="option" aria-selected="' + this.selected[index] + '">' + icon + escapeHtml(option.name) + '</div>'
 				).join('');
 				addListenerToCollectionElems(this.optionsElem.children, 'mousemove', (e) => {
 					if (!e.target) return;
@@ -684,6 +736,7 @@ class CustomSelect {
 				this.setFocussed(-1);
 			}
 			alterClass(this.elem, 'open', open);
+			this.currentElem.setAttribute('aria-expanded', open.toString());
 		}
 
 		if (open) {
@@ -711,6 +764,7 @@ class CustomSelect {
 				elemIndex = parseInt((<HTMLElement>optionElems[i]).dataset.index!);
 				alterClass(<HTMLElement>optionElems[i], CLASS_SELECTED, this.selected[elemIndex]);
 				alterClass(<HTMLElement>optionElems[i], CLASS_FOCUSSED, this.focussed === elemIndex);
+				(<HTMLElement>optionElems[i]).setAttribute('aria-selected', this.selected[elemIndex].toString());
 			}
 		}
 	}

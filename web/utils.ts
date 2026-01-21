@@ -649,6 +649,23 @@ class EventOverlay {
 			this.stop = null;
 		}
 
-		document.body.removeChild(eventOverlayElem);
+	document.body.removeChild(eventOverlayElem);
 	}
 }
+
+/**
+ * Make a HTML Element accessible as a button.
+ * @param elem The HTML Element.
+ */
+function makeButtonAccessible(elem: HTMLElement) {
+	elem.setAttribute('role', 'button');
+	elem.tabIndex = 0;
+	elem.addEventListener('keydown', (e) => {
+		if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			e.stopPropagation();
+			elem.click();
+		}
+	});
+}
+
