@@ -241,6 +241,14 @@
 								"copySubject": {
 									"type": "boolean",
 									"title": "Copy Commit Subject to Clipboard"
+								},
+								"copyMessage": {
+									"type": "boolean",
+									"title": "Copy Commit Message to Clipboard"
+								},
+								"addToChat": {
+									"type": "boolean",
+									"title": "Add Commit to Chat"
 								}
 							}
 						},

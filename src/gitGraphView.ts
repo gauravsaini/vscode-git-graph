@@ -178,7 +178,16 @@ export class GitGraphView extends Disposable {
 					error: await this.dataSource.addRemote(msg.repo, msg.name, msg.url, msg.pushUrl, msg.fetch)
 				});
 				break;
+			case 'addCommitToChat':
+				let commitBody = await this.dataSource.getCommitBody(msg.repo, msg.commitHash);
+				if (commitBody !== null) {
+					vscode.commands.executeCommand('workbench.action.chat.open', { query: '@workspace explain ' + msg.commitHash + ' ' + commitBody });
+				} else {
+					showErrorMessage('Unable to retrieve commit message.');
+				}
+				break;
 			case 'addTag':
+
 				errorInfos = [await this.dataSource.addTag(msg.repo, msg.tagName, msg.commitHash, msg.type, msg.message, msg.force)];
 				if (errorInfos[0] === null && msg.pushToRemote !== null) {
 					errorInfos.push(...await this.dataSource.pushTag(msg.repo, msg.tagName, [msg.pushToRemote], msg.commitHash, msg.pushSkipRemoteCheck));
@@ -261,7 +270,15 @@ export class GitGraphView extends Disposable {
 					refresh: msg.refresh
 				});
 				break;
+			case 'copyCommitMessage':
+				let message = await this.dataSource.getCommitBody(msg.repo, msg.commitHash);
+				this.sendMessage({
+					command: 'copyCommitMessage',
+					error: await copyToClipboard(message || '')
+				});
+				break;
 			case 'copyFilePath':
+
 				this.sendMessage({
 					command: 'copyFilePath',
 					error: await copyFilePathToClipboard(msg.repo, msg.filePath, msg.absolute)
@@ -437,8 +454,17 @@ export class GitGraphView extends Disposable {
 					this.currentRepo = msg.repo;
 					this.extensionState.setLastActiveRepo(msg.repo);
 					this.repoFileWatcher.start(msg.repo);
+
+					// Sync Terminal CWD
+					const terminals = vscode.window.terminals;
+					for (let i = 0; i < terminals.length; i++) {
+						if (terminals[i].name.startsWith('Git Graph: ')) {
+							terminals[i].sendText('cd "' + msg.repo + '"');
+						}
+					}
 				}
 				break;
+
 			case 'loadRepos':
 				if (!msg.check || !await this.repoManager.checkReposExist()) {
 					// If not required to check repos, or no changes were found when checking, respond with repos

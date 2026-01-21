@@ -368,7 +368,10 @@ export interface ContextMenuActionsVisibility {
 		readonly reset: boolean;
 		readonly copyHash: boolean;
 		readonly copySubject: boolean;
+		readonly copyMessage: boolean;
+		readonly addToChat: boolean;
 	};
+
 	readonly commitDetailsViewFile: {
 		readonly viewDiff: boolean;
 		readonly viewFileAtThisRevision: boolean;
@@ -720,7 +723,24 @@ export interface ResponseCopyFilePath extends ResponseWithErrorInfo {
 	readonly command: 'copyFilePath';
 }
 
+export interface RequestCopyCommitMessage extends RepoRequest {
+	readonly command: 'copyCommitMessage';
+	readonly commitHash: string;
+}
+export interface ResponseCopyCommitMessage extends ResponseWithErrorInfo {
+	readonly command: 'copyCommitMessage';
+}
+
+export interface RequestAddCommitToChat extends RepoRequest {
+	readonly command: 'addCommitToChat';
+	readonly commitHash: string;
+}
+export interface ResponseAddCommitToChat extends ResponseWithErrorInfo {
+	readonly command: 'addCommitToChat';
+}
+
 export interface RequestCopyToClipboard extends BaseMessage {
+
 	readonly command: 'copyToClipboard';
 	readonly type: string;
 	readonly data: string;
@@ -1250,7 +1270,9 @@ export interface ResponseViewScm extends ResponseWithErrorInfo {
 export type RequestMessage =
 	RequestAddRemote
 	| RequestAddTag
+	| RequestAddCommitToChat
 	| RequestApplyStash
+
 	| RequestBranchFromStash
 	| RequestCheckoutBranch
 	| RequestCheckoutCommit
@@ -1258,7 +1280,9 @@ export type RequestMessage =
 	| RequestCleanUntrackedFiles
 	| RequestCommitDetails
 	| RequestCompareCommits
+	| RequestCopyCommitMessage
 	| RequestCopyFilePath
+
 	| RequestCopyToClipboard
 	| RequestCreateArchive
 	| RequestCreateBranch
@@ -1314,7 +1338,9 @@ export type RequestMessage =
 export type ResponseMessage =
 	ResponseAddRemote
 	| ResponseAddTag
+	| ResponseAddCommitToChat
 	| ResponseApplyStash
+
 	| ResponseBranchFromStash
 	| ResponseCheckoutBranch
 	| ResponseCheckoutCommit
@@ -1322,7 +1348,9 @@ export type ResponseMessage =
 	| ResponseCleanUntrackedFiles
 	| ResponseCompareCommits
 	| ResponseCommitDetails
+	| ResponseCopyCommitMessage
 	| ResponseCopyFilePath
+
 	| ResponseCopyToClipboard
 	| ResponseCreateArchive
 	| ResponseCreateBranch

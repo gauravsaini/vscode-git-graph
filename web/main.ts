@@ -1232,8 +1232,23 @@ class GitGraphView {
 				onClick: () => {
 					sendMessage({ command: 'copyToClipboard', type: 'Commit Subject', data: commit.message });
 				}
+			},
+			{
+				title: 'Copy Commit Message to Clipboard',
+				visible: visibility.copyMessage !== false,
+				onClick: () => {
+					sendMessage({ command: 'copyCommitMessage', repo: this.currentRepo, commitHash: hash });
+				}
+			},
+			{
+				title: 'Add Commit to Chat',
+				visible: visibility.addToChat !== false,
+				onClick: () => {
+					sendMessage({ command: 'addCommitToChat', repo: this.currentRepo, commitHash: hash });
+				}
 			}
 		]];
+
 	}
 
 	private getRemoteBranchContextMenuActions(remote: string, target: DialogTarget & RefTarget): ContextMenuActions {

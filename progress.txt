@@ -1,0 +1,3 @@
+- Implemented Sync Terminal CWD (#912): Automatically changes directory of Git Graph terminals when switching repositories.
+- Implemented Add Commit to Chat (#911): Added context menu action to send commit details to VS Code Chat.
+- Implemented Copy Commit Message (#855): Added context menu action to copy the full commit message to clipboard.
