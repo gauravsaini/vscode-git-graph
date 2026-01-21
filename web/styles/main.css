@@ -214,6 +214,11 @@ code{
 	padding:0 4px;
 }
 #commitTable th{
+	position: -webkit-sticky;
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background-color: var(--vscode-editor-background);
 	border-bottom:1px solid rgba(128,128,128,0.5);
 	line-height:18px;
 	padding:6px 12px;
