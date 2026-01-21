@@ -1,0 +1,7 @@
+- Implemented support for `git.branchPrefix` setting.
+- Updated `GitGraphViewConfig` in `src/types.ts` to include `gitBranchPrefix`.
+- Updated `Config` in `src/config.ts` to retrieve `git.branchPrefix`.
+- Updated `GitGraphView` in `src/gitGraphView.ts` to pass `gitBranchPrefix` to the webview.
+- Updated `createBranchAction` in `web/main.ts` to use `gitBranchPrefix` as default branch name.
+- Fixed linebreaks in source files to satisfy linting.
+- Fixed `web/tsconfig.json` to handle dependencies and ES features correctly.

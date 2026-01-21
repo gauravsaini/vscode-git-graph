@@ -678,6 +678,7 @@ export class GitGraphView extends Disposable {
 				fetchAndPrune: config.fetchAndPrune,
 				fetchAndPruneTags: config.fetchAndPruneTags,
 				fetchAvatars: config.fetchAvatars && this.extensionState.isAvatarStorageAvailable(),
+				gitBranchPrefix: config.gitBranchPrefix,
 				graph: config.graph,
 				includeCommitsMentionedByReflogs: config.includeCommitsMentionedByReflogs,
 				initialLoadCommits: config.initialLoadCommits,

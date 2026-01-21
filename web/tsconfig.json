@@ -1,7 +1,7 @@
 {
 	"compilerOptions": {
 		"lib": [
-			"es6",
+			"es2017",
 			"dom"
 		],
 		"module": "none",
@@ -12,7 +12,9 @@
 		"noUnusedParameters": true,
 		"outDir": "../media",
 		"removeComments": true,
+		"skipLibCheck": true,
 		"strict": true,
-		"target": "es5"
+		"target": "es5",
+		"types": ["node"]
 	}
 }

@@ -245,6 +245,7 @@ export interface GitGraphViewConfig {
 	readonly fetchAndPrune: boolean;
 	readonly fetchAndPruneTags: boolean;
 	readonly fetchAvatars: boolean;
+	readonly gitBranchPrefix: string | null;
 	readonly graph: GraphConfig;
 	readonly includeCommitsMentionedByReflogs: boolean;
 	readonly initialLoadCommits: number;

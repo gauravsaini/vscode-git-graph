@@ -358,6 +358,13 @@ class Config {
 	}
 
 	/**
+	 * Get the value of the `git.branchPrefix` Visual Studio Code Setting.
+	 */
+	get gitBranchPrefix() {
+		return vscode.workspace.getConfiguration('git').get<string | null>('branchPrefix', null);
+	}
+
+	/**
 	 * Get the value of the `git-graph.repository.commits.initialLoad` Extension Setting.
 	 */
 	get initialLoadCommits() {

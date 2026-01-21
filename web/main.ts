@@ -1101,13 +1101,9 @@ class GitGraphView {
 		const commit = this.commits[this.commitLookup[hash]];
 		return [[
 			{
-				title: 'Add Tag' + ELLIPSIS,
-				visible: visibility.addTag,
-				onClick: () => this.addTagAction(hash, '', this.config.dialogDefaults.addTag.type, '', null, target)
-			}, {
 				title: 'Create Branch' + ELLIPSIS,
 				visible: visibility.createBranch,
-				onClick: () => this.createBranchAction(hash, '', this.config.dialogDefaults.createBranch.checkout, target)
+				onClick: () => this.createBranchAction(hash, this.config.gitBranchPrefix || '', this.config.dialogDefaults.createBranch.checkout, target)
 			}
 		], [
 			{
