@@ -1,0 +1,3 @@
+- Implemented sticky headers for the Graph View by adding `position: sticky` to the table headers in `web/styles/main.css`.
+- Added `background-color` to the headers to prevent content from showing through when scrolling.
+- Added `z-index` to ensure headers stay above the graph and table content.
