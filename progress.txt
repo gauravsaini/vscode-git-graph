@@ -1,0 +1,11 @@
+# Progress Log - Fix VSCode Update Compatibility
+
+## Tasks
+- [x] Explore codebase to identify icon and context menu implementation logic.
+- [x] Identify specific compatibility issues with recent VSCode updates (Icons #903/#871, Context Menus #873).
+- [x] Fix Icon compatibility issues.
+  - Added `scm/sourceControl` menu contribution to `package.json` to show Git Graph icon next to repositories in the Source Control view.
+- [x] Fix Context Menu compatibility issues.
+  - Updated `web/contextMenu.ts` to handle keyboard-triggered context menus (missing coordinates) by positioning relative to the target element.
+  - Updated `web/main.ts` to listen for `ContextMenu` and `Shift+F10` keys and trigger the context menu for the selected commit.
+- [x] Verify fixes.

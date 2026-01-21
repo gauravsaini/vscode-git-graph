@@ -2038,6 +2038,27 @@ class GitGraphView {
 					dialog.submit();
 					handledEvent(e);
 				}
+			} else if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) {
+				if (this.expandedCommit !== null && this.expandedCommit.commitElem !== null) {
+					handledEvent(e);
+					const commit = this.commits[this.commitLookup[this.expandedCommit.commitHash]];
+					const target: ContextMenuTarget & DialogTarget & CommitTarget = {
+						type: TargetType.Commit,
+						hash: commit.hash,
+						index: this.expandedCommit.index,
+						elem: this.expandedCommit.commitElem
+					};
+					let actions: ContextMenuActions;
+					if (commit.hash === UNCOMMITTED) {
+						actions = this.getUncommittedChangesContextMenuActions(target);
+					} else if (commit.stash !== null) {
+						target.ref = commit.stash.selector;
+						actions = this.getStashContextMenuActions(<RefTarget>target);
+					} else {
+						actions = this.getCommitContextMenuActions(target);
+					}
+					contextMenu.show(actions, false, target, <MouseEvent><any>e, this.viewElem);
+				}
 			} else if (this.expandedCommit !== null && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
 				const curHashIndex = this.commitLookup[this.expandedCommit.commitHash];
 				let newHashIndex = -1;

@@ -1508,6 +1508,13 @@
 					"command": "git-graph.view",
 					"group": "inline"
 				}
+			],
+			"scm/sourceControl": [
+				{
+					"command": "git-graph.view",
+					"when": "scmProvider == git",
+					"group": "inline"
+				}
 			]
 		}
 	},
