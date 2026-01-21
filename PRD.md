@@ -1,0 +1,368 @@
+# Product Requirements Document: VSCode Git Graph (Revival/Fork)
+
+## 1. Executive Summary
+This document outlines the product requirements for the Git Graph extension, based on the backlog of open issues from the original repository.
+**Note:** The original project appears to be abandoned (Issue #913). This PRD serves as a roadmap for potential maintainers or forking.
+
+## 2. Strategic Themes & High Priority Items
+
+### 2.1 Maintenance & Compatibility
+- **VSCode Updates**: Fix issues caused by recent VSCode updates (e.g., Icons disappearing #903, #871, Context menus breaking #873).
+- **Project Status**: Clarify maintenance status to users.
+
+### 2.2 User Experience (UX)
+- **Sticky Headers**: Keep graph headers/columns visible while scrolling (#902, #867).
+- **Accessibility/Navigation**: Keyboard navigation improvements (#865).
+- **Visuals**: Horizontal graph (#891), Commit signature status (#909).
+
+### 2.3 Advanced Git Workflow
+- **Filtering**: Filter by author (#885), revision range (#897), exclude master commits (#898).
+- **Integration**: Sync Terminal CWD (#912), Add Commit to Chat (#911), Copy Commit Message (#855).
+
+---
+
+## 3. Detailed Requirements
+
+### 3.1 New Features
+- **#912**: Automatically sync Terminal CWD when switching Repository
+- **#911**: Feature: right-click, "Add Commit to Chat"
+- **#909**: Feature: Add signature status column to commit table
+- **#906**: respect git.branchPrefix setting
+- **#898**: Hide/filter most commits on master, only showing those coming off of the master branch.
+- **#897**: allow filtering of commits using <revision-range>
+- **#896**: allow jumping directly to changelist by hash
+- **#895**: Allow switching / checking out branches from the branch search directly (right click ctx menu)
+- **#894**: View diff between the current branch/commit and the target one
+- **#893**: Show all branches on tooltip when hover over on a commit to see on rhich branches the commit is included
+- **#891**: A horizontal graph
+- **#890**: dfh
+- **#885**: Ability to filter by/out authors
+- **#878**: feature-request: third option for auto-generated commit message in git merge squash (`merge branch XXXX + list of all git commit logs`)
+- **#877**: New Feature Request --> Automatically pull
+- **#866**: Automatically detect subfolders with git repository
+- **#865**: A way to navigate entries using only the keyboard when entering the Git Graph view
+- **#861**: Indicate cherry picks
+- **#859**: Apply single file from stash 
+- **#855**: Copy Commit Message Functionality
+- **#849**: Support VSCode Remote Tunnel Access
+- **#848**: please add git commands output log support
+- **#844**: Push settings
+- **#843**: View diff of diffs (range-diff)
+- **#841**: Integrate vscode multi-file diff in single editor view from VSCode native Source Control Graph
+- **#838**: COMMUNITY CALL: Git Graph is abandoned— let's get VS Code to rebuild it as an official feature
+- **#837**: shortcut to filter by the current branch and its remote
+- **#836**: click icon again to close git graph
+- **#835**: Show Git Log icon in the main menu
+- **#833**: Zoom out of the history
+- **#832**: add stash&checkout option
+- **#830**: Show all branches & tags referring to a commit
+- **#828**: New dropdown button: 'update branch'
+- **#826**: Missing "Buy Me a Coffee" Section in the README! ☕️
+- **#825**: Only Show remote branches which have local equivalents
+- **#824**: support customize search highlighting color
+- **#821**: [Feature Request] add button to scroll to current HEAD
+- **#809**: Add Support for Custom Branch Colors
+- **#807**: View commit in native multi-diff view
+- **#801**: side pannel to view multi line Git commits.
+- **#798**: automatically create links to tracker tickets
+- **#793**: Add option for 'Add Git Repository' in settings.json
+- **#791**: Checkout for specific files
+- **#788**: Is it possible to add multiple languages?
+- **#787**: [Feature Request] Option to show graph on the left side, and commit messages on the right
+- **#784**: Hover over commit description to see the whole commit description
+- **#782**: Add a command to show the diff of a commit with the working tree
+- **#781**: (Minimal) Git Graph View in Side Panel
+- **#780**: Activity bar activation button
+- **#776**: Collapsible merge commits
+- **#775**: graph colors based on the colors of the Tokyo subway line map
+- **#771**: Review committed changes in split editor
+- **#765**: Add ability to edit a commit message
+- **#762**: [feature] Add support for localization with vscode-loc installed.
+- **#760**: Feature Request: ability to filter displayed branches
+- **#759**: A way to change the font?
+- **#757**: Interactive rebase using vscode text editor
+- **#753**: Separate entry for HEAD in Branches filter
+- **#752**: Refresh Graph command
+- **#751**: Commit Details View in rows instead of columns
+- **#749**: Add user-customisable date/time format (or one that shows the day of the week)
+- **#748**: It would be nice to include remote Github commit statuses, when available
+- **#747**: Multiple Git Graph instances/views
+- **#739**: Commit filter by specified file
+- **#737**: Add option --no-tags to fetch dialog
+- **#735**: Add Cancel Merge
+- **#729**: data & commits format
+- **#728**: Keep graph in view when showing diff
+- **#727**: Ability to filter by author
+- **#722**: Add "checkout" function to tags
+- **#721**: copy commit hash to the clipboard by a click or when commit is selected
+- **#717**: Freeze Panes while scrolling.
+- **#716**: cherry pick make no sense
+- **#709**: Add better control for Repository Search
+- **#705**: Show added/removed lines column
+- **#702**: Add the extension to Activity Bar
+- **#701**: Drag&Drop actions in graph view
+- **#699**: Please support remote development
+- **#695**: Allow to see and edit notes
+- **#694**: Enable the usage of difftool to view diff
+- **#691**: Fix Tab Order on New Branch dialog to include "Create" and "Cancel" buttons.
+- **#688**: Add ability to display long commit message and multiple tag-names
+- **#680**: Pull Request Link for branches
+- **#678**: Show detached HEAD in graph
+- **#673**: [Feature Request] Automatically show graph
+- **#667**:  Emphase current branch with bold line in Git graph
+- **#662**: Consider becoming a verified publisher
+- **#659**: Add support for code blocks in comments
+- **#658**: Support Virtual Workspaces / Remote Repositories
+- **#657**: Ignore Branches
+- **#649**: Hide certain fields in detailed view
+- **#645**: To add the reverse order option?
+- **#643**: Show workspace commit when opening the graph
+- **#642**: Add keyboard shortcut for "Open a Terminal for this Repository"
+- **#635**: Custom date formats
+- **#625**: Default state of the "Delete this branch on the remote"
+- **#624**: Support ignorecase setting
+- **#623**: Add basic title popup to graphs on hover to see branch name
+- **#616**: filter commits
+- **#614**: Filter for file in diff view
+- **#610**: Potentially allow multiple instances / tabs
+- **#606**: Export to html 
+- **#605**: Autocomplete tag name
+- **#596**: Exclude from Create Archive
+- **#595**: Regex branch filtering
+- **#594**: Open multiple files from a commit
+- **#591**: Add ability to pass arbitrary extra arguments to git log
+- **#588**: how can we add some feature base on Git graph?
+- **#587**: Add autosquash option in rebase popup
+- **#579**: New Commit Details View: Location Option
+- **#565**: add support for git lfs diff
+- **#564**: add new context menu to copy online commit link
+- **#550**: Merge git-graph.addGitRepository with git.openRepository
+- **#543**: Show file mode changes 
+- **#538**: Create and apply patches
+- **#523**: Add match whole word option in search
+- **#475**: Add possibility to display git notes 
+- **#465**: Ability to filter by tags as well as by branches.
+- **#462**: Display the status of GH Actions Checks
+- **#454**: add - copy last tag to clipboard
+- **#410**: Commit context menu items to create fixup, squash and another for autosquash
+- **#387**: Collapsible Graph
+- **#384**: View alternate parent changes at merge commits
+- **#375**: allow searching in different column
+- **#360**: Exclude branches from graph using 'git-log --exclude=<glob-pattern>' option
+- **#289**: Add "rebase --onto" branch action
+- **#270**: Make the line highlighted and/or slightly thicker when clicking on it
+- **#257**: Show Tracked Remote Branches
+- **#207**: Persistent Branches get a dedicated column
+- **#206**: Show File Diffs within the Git Graph View
+- **#184**: Delete multiple branches at once
+- **#182**: Multi-commit operations
+- **#171**: Filtering log from a specific author.
+- **#113**: Complete support of rebase operation
+- **#70**: filter graph by file/tree
+
+### 3.2 Bug Fixes
+- **#903**: Git Graph icon not showing up next to repos after latest VSCode update
+- **#899**: Don’t mangle markdown links (even better, support them) in commit messages
+- **#892**: Git Graph adds weird keybinds that break others
+- **#889**: hgf
+- **#882**: Now I change the git_path, and reload the git graph, but failed
+- **#880**: Isolated carriage return character in commit message breaks git-graph log
+- **#879**: Is GitGraph dead?
+- **#876**: Authentication failure on fetch from github in WSL2/remote workspace
+- **#875**: folder with multiple repos doesn't have the option to move between them
+- **#872**: Extension activation  results in "Git.path is not installed"  popup.
+- **#871**: Source Control Repositories Icon Disappeared
+- **#868**: Filter by author resets to default when returning to Git Graph.
+- **#864**: Menu Key or Shift+F10 won't produce the expected contextual menu for the currently focused item/changset
+- **#863**: Context menu not available in VSCodium
+- **#860**: Error on first letter uncapitalization when rectifying a push without upstream
+- **#858**: Phantom uncommitted changes after merge
+- **#857**: Scroll To Head does not work if repo is large
+- **#856**: Create Branch button not active when copy/pasting branch name using only the mouse
+- **#854**: Diff/merge window doesn't highlight difference for the ..code: block in *.rst file
+- **#852**: History navigation with mouse buttons not working
+- **#847**: Git Graph shows text color and ghosting issue
+- **#846**:  cd Oops, something went wrong.  Please report this bug with the details below. Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new    
+- **#845**: Repo dropdown refresh
+- **#834**: Swallowing the "S" key for shortcuts
+- **#827**: Git Graph not working inside devcontainer
+- **#823**: VSCode feature `scm.workingSets.default` closes Git Graph when changing branches.
+- **#820**: Unable to switch between different branches
+- **#819**: bug
+- **#818**: extension not working
+- **#817**: The commit delete the branch info sometimes
+- **#814**: When comparing between different branches, an invalid commit is used as source.
+- **#803**: unable to load git graph in vscode with wsl2
+- **#794**: Git Graph not opening: "Cannot read properties of null (reading 'rootUri')"
+- **#792**: Issue link not able to open app URLs
+- **#790**: Nested git worktrees show up as Uncommitted Changes
+- **#789**: Graph does not update automatically for submodules
+- **#778**: Could not show graph for submodule
+- **#774**: I can not use rebase with ineractive mode 
+- **#770**: Error loading webview
+- **#755**: Missing flow for fetching from remotes when user has a SSH passphrase linked to GitHub account
+- **#745**: Cannot copy simple text from graph committed comments
+- **#743**: Stashes no longer shown after rebase (Current branch selected for view)
+- **#741**: Remote tags are still visible for hidden remote
+- **#734**: Something wrong Git version detection 
+- **#733**: how to clean this cache
+- **#732**: Error loading webview
+- **#730**: Push Branch gives me Authentication error with VsCode ver. 1.72.0
+- **#726**: No longer works in remote - button never opens GitGraph - fork works
+- **#725**: Git Graph Page is Empty
+- **#723**: Only new filename is listed in diff view after rename
+- **#720**: File View shows empty on Windows 10
+- **#719**: Errors when trying to build codebase
+- **#712**: Memory leak?
+- **#710**: Error loading webview
+- **#708**: Cannot delete tag that shares a name with a branch
+- **#707**: PR links in commit messages point to invalid URL
+- **#704**: Unable to load Git Graph - windows10 - cygdrive (cygwin path)
+- **#693**: Handle branches with same name but different case 
+- **#690**: Git graph icon is barely visible with the Light+ theme
+- **#686**: Git Graph prevents the new 3-way merge editor from opening
+- **#685**: Opening git graph shows nothing
+- **#674**: Error when naming folder constructor
+- **#672**: Cannot Fetch from an HTTPS only GitLab origin
+- **#671**: Unable to load git graph
+- **#668**: Git graph does not detect git worktree as git repo
+- **#654**: Interactive rebase does not work inside VSCode dev container 
+- **#652**: Can't focus buttons in Dialog Form
+- **#648**: vscode stuck after opening the git graph view
+- **#646**: Error loading webview: Error: Could not register service workers: InvalidStateError: Failed to register a ServiceWorker: The document is in an invalid state.
+- **#641**: cannot load all commits
+- **#634**: Dedicated reflog view
+- **#524**: Visual Studio Code 1.56 - 1.64 Service Worker Bug
+
+### 3.3 Improvements
+- **#905**: python
+- **#902**: Make Top Bar and Column Titles Static
+- **#901**: each branch sets the color of the text @ pumpurumpumpupum
+- **#883**: Add `--ignore-whitespaces` option to `Rebase current branch on this commit...`
+- **#867**: Make the graph's header fixed (non-scrollable)
+- **#851**: Ability to fix the Main branch path on the left hand side
+- **#840**: Ability to Add Multiple Issue Links
+- **#839**: Pin the column headers.
+- **#831**: More convenient scrolling
+- **#813**: Prompt for ssh key phrase #812
+- **#808**: Show all branches for specific commit same as (git log --graph --oneline)
+- **#806**: broken links in vscode
+- **#804**: COMMUNITY CALL: Add your support for rebuilding Git Graph as an official VS Code feature
+- **#777**: List of all tags for single commit not visible over Git Graph UI
+- **#772**: Allow customization of external difftool command line options
+- **#768**: Make commit details view collapsible recursively
+- **#761**: Add a getting started section to documentation
+- **#756**: Code Review in progess should be indicated on a commit
+- **#754**: Include manually added sub-repos in config export
+- **#746**: Add push mode "force" option when pushing tags
+- **#736**: Keyboard shortcut to open repository dropdown
+- **#724**: Relative-date column (like "5 days ago")
+- **#718**: Git Graph bottom bar button does not sync to the opened file in focus
+- **#706**: Extension do not respect vscode files.exclude setting
+- **#687**: Turn it into a web extension
+- **#684**: render github link to commit detail
+- **#682**: Keyboard shortcut navigation.
+- **#676**: Log output - popped/dropped stashes
+- **#675**: Keep Git Graph tab pinned after restarting VS Code 
+- **#664**: The context menu of the right click on the folder is useless
+- **#653**: Show worktree branches with distinct styling
+- **#651**: Ctrl/Cmd keyboard shortcut hide vscode shortcuts
+- **#650**: Setting for Always Check Out Commit (detached HEAD warning)
+- **#640**: Compare any two commits in preferred order
+- **#618**: Select previous search text when reopening search box
+- **#608**: Jump to commit when selecting tag/branch in "Source Control" tab
+- **#607**: "Find" string in unloaded commits
+- **#603**: Allow tag messages to be spread across multiple lines
+- **#598**: "View Diff" should open VS Code's rich diff viewer for Jupyter Notebooks
+- **#592**: improvement file encoding
+- **#590**: Automatically open git graph window on Mac Monterey 12.0.1
+- **#589**: Keep the Git Graph opened on workspace reload
+- **#585**: making it easier to to visually follow branch lines at intersection points.
+- **#576**: Ability to select branch(es) using commands
+- **#575**: Break "Uncommitted Changes" into "Working Tree" and "Staged Changes"
+- **#574**: Add the capability of force pushing tags
+- **#570**: Code Review : when element is selected listen to the key board for navigating next and back
+- **#548**: More Obvious Indication of Leading or Trailing Whitespaces
+- **#522**: Support for Git File Type Changes (e.g. symbolic links <-> files)
+- **#521**: Improve finding Stashes in the graph
+- **#519**: Add "merge --abort"
+- **#484**: Allow Repository & Branches Dropdown's to be navigated via keyboard
+- **#422**: Optimise crossings and remove extra curves in the graph
+- **#313**: Expand or Add to Issue Linking
+- **#254**: Adding branch colors on all commits
+- **#147**: Advanced search
+- **#132**: Keep header visible when the view is scrolled
+
+### 3.4 Uncategorized Items (To Triage)
+- **#913**: THIS PROJECT HAS BEEN ABANDONED. CREATING NEW ISSUES IS POINTLESS.
+- **#887**: Git Versions and files are deleted or changed without my touch.  Some commits are erased, how it could be?
+- **#873**: after vs code update to 1.97.1, git graph right-click not work
+- **#829**: VSCode Crash
+- **#786**: I am unable to copy commit information in the git graph
+- **#773**: Git Graph interactive rebase and terminal activation conflict
+- **#766**: Recognize Git-Flow when drawing lines
+- **#697**: code Helper CPU hige
+- **#696**: Folder to file change commit causes 'Loading Commit Details' forever.
+- **#681**: Extension causes high cpu load
+- **#665**: Won't show in remote repositories
+- **#609**: `Open New Tab Editor Group: Beside` should be relative to graph, not relative to active
+- **#529**: Blocks Hide keyboard shortcut on Mac even when closed
+
+### 3.5 Questions / Support (Reference)
+- **#888**: 开发者还在不在？
+- **#881**: Keyboard shortcut to copy hash of currently viewed commit?
+- **#874**: How to compare commits between two branches?
+- **#862**: this git repository hasn't been updated in four years. why are you still opening issues?
+- **#853**: api key
+- **#816**: Git Graph key binding returns an error in other windows
+- **#799**: Question about Extension Setting: git-graph.dialog.merge.noFastForward
+- **#796**: How to locate where a branch was created from master?
+- **#785**: git graph encoding
+- **#779**: Is this (amazing) extension still developed?
+- **#769**: MARKETPLACE DEPRECATION PROPOSED
+- **#764**: Specify which remotes are included when pressing the "Fetch & Prune" button
+- **#758**: Open External directory diff with vscode
+- **#750**: How do you export the graph as an SVG,PNG or JPG
+- **#731**: bring this back to life
+- **#715**: Project appears to be dead?
+- **#689**: how to create branch from the specific point in the existing branch and what is checkout option
+- **#679**: Unable to see one of my repo in git graph
+- **#656**: About the difference of "Repository Settings" menu between vscode and code-server
+
+## 4. Implementation Todo List
+
+### High Priority
+- [x] **Fix VSCode Update Compatibility** (Icons #903/#871, Context Menus #873)
+- [ ] **Implement Sticky Headers for Graph View** (#902, #867)
+- [x] **Improve Accessibility & Keyboard Navigation** (#865)
+- [ ] **Visual Enhancements**: Horizontal Graph (#891), Commit Signature Status (#909)
+- [ ] **Advanced Filtering**: Author (#885), Revision Range (#897), Exclude Master (#898)
+- [ ] **Integration Features**: Sync Terminal CWD (#912), Add Commit to Chat (#911), Copy Commit Message (#855)
+
+### Medium Priority
+- [ ] **Feature**: Respect git.branchPrefix setting (#906)
+- [ ] **Feature**: Jump to changelist by hash (#896)
+- [ ] **Feature**: Branch switching from search context menu (#895)
+- [ ] **Feature**: View diff between current branch/commit and target (#894)
+- [ ] **Feature**: Show all branches on tooltip (#893)
+- [ ] **Feature**: Auto-generated merge message options (#878)
+- [ ] **Feature**: Automatically pull (#877)
+- [ ] **Feature**: Detect subfolders with git repo (#866)
+- [ ] **Feature**: Indicate cherry picks (#861)
+- [ ] **Feature**: Apply single file from stash (#859)
+- [ ] **Bug Fix**: Markdown links in commit messages (#899)
+- [ ] **Bug Fix**: Keybind conflicts (#892)
+- [ ] **Bug Fix**: Carriage return in commit logs (#880)
+- [ ] **Bug Fix**: Authentication on fetch (WSL2/Remote) (#876)
+- [ ] **Bug Fix**: Multi-repo folder navigation (#875)
+- [ ] **Bug Fix**: 'Git.path is not installed' error (#872)
+- [ ] **Bug Fix**: Filter by author resetting (#868)
+- [ ] **Bug Fix**: Menu key context menu (#864)
+- [ ] **Bug Fix**: Context menu in VSCodium (#863)
+- [ ] **Bug Fix**: Phantom uncommitted changes after merge (#858)
+- [ ] **Bug Fix**: Scroll To Head on large repos (#857)
+
+### Low Priority
+- [ ] **Improvement**: Add --ignore-whitespaces to rebase (#883)
+- [ ] **Improvement**: Multiple Issue Links (#840)
+- [ ] **Improvement**: SSH key phrase prompt (#813)

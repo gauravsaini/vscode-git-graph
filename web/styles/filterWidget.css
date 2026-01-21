@@ -1,0 +1,71 @@
+.filterWidget{
+	display:block;
+	position:fixed;
+	top:-42px;
+	right:28px;
+	height:34px;
+	padding:0 10px;
+	z-index:21;
+	background-color:var(--vscode-editorWidget-background);
+	box-shadow:0 2px 8px var(--vscode-widget-shadow);
+	line-height:34px;
+	font-size:13px;
+	color:var(--vscode-editorSuggestWidget-foreground);
+	fill:var(--vscode-editorSuggestWidget-foreground);
+	fill-opacity:0.7;
+	white-space:nowrap;
+}
+.filterWidget.active{
+	top:0;
+}
+.filterWidget.transition{
+	transition:top .2s linear;
+}
+
+#filterAuthorInput, #filterRevisionRangeInput{
+	display:inline-block;
+	vertical-align:top;
+	margin-top:4px;
+	padding:5px;
+	border:0;
+	height:16px;
+	width:150px;
+	background-color:var(--vscode-input-background);
+	color:var(--vscode-input-foreground);
+	font-size:13px;
+	outline-offset:-1px !important;
+	margin-right: 5px;
+}
+#filterAuthorInput:focus, #filterRevisionRangeInput:focus{
+	outline:1px solid var(--vscode-focusBorder);
+}
+#filterAuthorInput::placeholder, #filterRevisionRangeInput::placeholder{
+	color:var(--vscode-input-placeholderForeground);
+}
+
+#filterApply, #filterClose{
+	display:inline-block;
+	-webkit-user-select:none;
+	user-select:none;
+	position:relative;
+	width:20px;
+	height:20px;
+	vertical-align:top;
+	margin:7px 0 0 6px;
+	cursor:pointer;
+}
+#filterApply svg{
+	position:absolute;
+	left:3px;
+	top:3px;
+}
+#filterClose svg{
+	position:absolute;
+	left:2px;
+	top:2px;
+	width:16px !important;
+	height:16px !important;
+}
+#filterApply:hover, #filterClose:hover{
+	fill-opacity:1;
+}

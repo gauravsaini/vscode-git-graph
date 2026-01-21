@@ -65,7 +65,9 @@ declare global {
 		readonly scrollTop: number;
 		readonly findWidget: FindWidgetState;
 		readonly settingsWidget: SettingsWidgetState;
+		readonly filterWidget: FilterWidgetState;
 	}
+
 
 
 	/* Commit Details / Comparison View File Tree Types */

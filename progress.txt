@@ -1,0 +1,25 @@
+Task: Advanced Filtering: Author (#885), Revision Range (#897), Exclude Master (#898)
+
+Status: Completed
+
+Details:
+1. Backend (src/dataSource.ts):
+   - Updated getCommits and getLog to accept 'authors' and 'revisionRange' parameters.
+   - Implemented logic to append '--author' and revision range args to git log command.
+
+2. Communication (src/types.ts, src/gitGraphView.ts):
+   - Updated RequestLoadCommits interface to include 'authors' and 'revisionRange'.
+   - Updated GitGraphView.respondToMessage to pass these parameters to DataSource.
+
+3. Frontend (web/):
+   - Created web/filterWidget.ts to handle filter UI logic.
+   - Created web/styles/filterWidget.css for styling the widget.
+   - Updated web/global.d.ts to include FilterWidgetState.
+   - Updated web/main.ts:
+     - Added FilterWidget instance.
+     - Added 'Filter' button to the toolbar.
+     - Updated requestLoadCommits to retrieve filter values and send them to backend.
+   - Updated src/gitGraphView.ts to add the 'filterBtn' HTML element.
+
+4. Exclude Master:
+   - Supported via 'Revision Range' input. Users can enter '^master' or 'HEAD..master' to exclude master commits.
