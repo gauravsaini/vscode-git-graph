@@ -122,6 +122,15 @@ declare global {
 	interface RefTarget extends CommitTarget {
 		ref: string;
 	}
+
+	interface WasmBindgenApi {
+		(module_or_path?: any): Promise<any>;
+		readonly initSync: (options: { module: any }) => any;
+		readonly generate_layout_js: (commits: any, refs: any, config: any) => GG.WasmGraphLayout;
+		readonly render_svg: (layout: string, config: string) => string;
+	}
+
+	const wasm_bindgen: WasmBindgenApi | undefined;
 }
 
 export as namespace GG;

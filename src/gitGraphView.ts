@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AvatarManager } from './avatarManager';
@@ -698,7 +699,16 @@ export class GitGraphView extends Disposable {
 			loadViewTo: this.loadViewTo,
 			repos: this.repoManager.getRepos(),
 			loadRepoInfoRefreshId: this.loadRepoInfoRefreshId,
-			loadCommitsRefreshId: this.loadCommitsRefreshId
+			loadCommitsRefreshId: this.loadCommitsRefreshId,
+			wasmUri: this.getMediaUri('git_graph_wasm_bg.wasm').toString(),
+			wasmBase64: (() => {
+				try {
+					const wasmPath = path.join(this.extensionPath, 'media', 'git_graph_wasm_bg.wasm');
+					return fs.existsSync(wasmPath) ? fs.readFileSync(wasmPath).toString('base64') : undefined;
+				} catch {
+					return undefined;
+				}
+			})()
 		};
 		const globalState = this.extensionState.getGlobalViewState();
 		const workspaceState = this.extensionState.getWorkspaceViewState();
@@ -735,6 +745,7 @@ export class GitGraphView extends Disposable {
 			</div>
 			<div id="scrollShadow"></div>
 			<script nonce="${nonce}">var initialState = ${JSON.stringify(initialState)}, globalState = ${JSON.stringify(globalState)}, workspaceState = ${JSON.stringify(workspaceState)};</script>
+			<script nonce="${nonce}" src="${this.getMediaUri('git_graph_wasm.js')}"></script>
 			<script nonce="${nonce}" src="${this.getMediaUri('out.min.js')}"></script>
 			</body>`;
 		} else {
@@ -753,7 +764,7 @@ export class GitGraphView extends Disposable {
 		<html lang="en">
 			<head>
 				<meta charset="UTF-8">
-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${standardiseCspSource(this.panel.webview.cspSource)} 'unsafe-inline'; script-src 'nonce-${nonce}'; img-src data:;">
+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${standardiseCspSource(this.panel.webview.cspSource)} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval' 'wasm-unsafe-eval'; connect-src ${standardiseCspSource(this.panel.webview.cspSource)} data:; img-src data:;">
 				<meta name="viewport" content="width=device-width, initial-scale=1.0">
 				<link rel="stylesheet" type="text/css" href="${this.getMediaUri('out.min.css')}">
 				<title>Git Graph</title>

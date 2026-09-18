@@ -19,7 +19,7 @@ const DEBUG = process.argv.length > 2 && process.argv[2] === 'debug';
 // Determine the JS files to be packaged. The order is: utils.ts, *.ts, and then main.ts
 let packageJsFiles = [path.join(MEDIA_DIRECTORY, UTILS_JS_FILE)];
 fs.readdirSync(MEDIA_DIRECTORY).forEach((fileName) => {
-	if (fileName.endsWith('.js') && fileName !== OUTPUT_MIN_JS_FILE && fileName !== UTILS_JS_FILE && fileName !== MAIN_JS_FILE) {
+	if (fileName.endsWith('.js') && fileName !== OUTPUT_MIN_JS_FILE && fileName !== UTILS_JS_FILE && fileName !== MAIN_JS_FILE && !fileName.startsWith('git_graph_wasm')) {
 		packageJsFiles.push(path.join(MEDIA_DIRECTORY, fileName));
 	}
 });

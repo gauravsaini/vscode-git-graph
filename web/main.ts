@@ -59,6 +59,22 @@ class GitGraphView {
 		this.config = initialState.config;
 		this.maxCommits = this.config.initialLoadCommits;
 		this.viewElem = viewElem;
+
+		if (typeof wasm_bindgen === 'function') {
+			try {
+				if (initialState.wasmBase64) {
+					const binary = atob(initialState.wasmBase64);
+					const bytes = new Uint8Array(binary.length);
+					for (let i = 0; i < binary.length; i++) {
+						bytes[i] = binary.charCodeAt(i);
+					}
+					wasm_bindgen.initSync({ module: bytes });
+				} else if (initialState.wasmUri) {
+					wasm_bindgen(initialState.wasmUri).catch(() => {});
+				}
+			} catch (e) {
+			}
+		}
 		this.currentRepoRefreshState = {
 			inProgress: false,
 			hard: true,

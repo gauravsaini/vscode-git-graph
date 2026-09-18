@@ -229,6 +229,33 @@ export interface GitGraphViewInitialState {
 	readonly repos: GitRepoSet;
 	readonly loadRepoInfoRefreshId: number;
 	readonly loadCommitsRefreshId: number;
+	readonly wasmUri?: string;
+	readonly wasmBase64?: string;
+}
+
+export interface WasmLayoutNode {
+	readonly column: number;
+	readonly color: number;
+	readonly is_merge: boolean;
+	readonly is_head: boolean;
+}
+
+export interface WasmLayoutRoute {
+	readonly from_col: number;
+	readonly to_col: number;
+	readonly color: number;
+	readonly is_merge: boolean;
+}
+
+export interface WasmLayoutRow {
+	readonly node: WasmLayoutNode;
+	readonly routes: ReadonlyArray<WasmLayoutRoute>;
+}
+
+export interface WasmGraphLayout {
+	readonly rows: ReadonlyArray<WasmLayoutRow>;
+	readonly max_columns: number;
+	readonly color_count: number;
 }
 
 export interface GitGraphViewConfig {

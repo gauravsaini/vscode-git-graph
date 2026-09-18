@@ -429,12 +429,92 @@ class Graph {
 			this.vertices[commitLookup[commitHead]].setCurrent();
 		}
 
-		i = 0;
-		while (i < this.vertices.length) {
-			if (this.vertices[i].getNextParent() !== null || this.vertices[i].isNotOnBranch()) {
-				this.determinePath(i);
-			} else {
-				i++;
+		let usedWasm = false;
+		if (typeof wasm_bindgen !== 'undefined' && typeof wasm_bindgen.generate_layout_js === 'function') {
+			try {
+				const wasmCommits = new Array(commits.length);
+				for (let c = 0; c < commits.length; c++) {
+					const commit = commits[c];
+					wasmCommits[c] = {
+						hash: commit.hash,
+						abbreviated_hash: commit.hash.substring(0, 7),
+						parents: commit.parents,
+						author: { name: commit.author, email: commit.email },
+						committer: { name: commit.author, email: commit.email },
+						message: commit.message,
+						summary: commit.message.split('\n')[0],
+						date: new Date(commit.date * 1000).toISOString()
+					};
+				}
+				const wasmRefs = {
+					head: commitHead ? { Detached: commitHead } : undefined,
+					branches: [],
+					remotes: [],
+					tags: [],
+					stashes: [],
+					worktrees: []
+				};
+				const wasmConfig = {
+					row_height: this.config.grid.y,
+					col_width: this.config.grid.x,
+					node_radius: 4,
+					color_palette_size: this.config.colours.length
+				};
+				const layout = wasm_bindgen.generate_layout_js(wasmCommits, wasmRefs, wasmConfig);
+				this.applyWasmLayout(layout);
+				usedWasm = true;
+			} catch (e) {
+			}
+		}
+
+		if (!usedWasm) {
+			i = 0;
+			while (i < this.vertices.length) {
+				if (this.vertices[i].getNextParent() !== null || this.vertices[i].isNotOnBranch()) {
+					this.determinePath(i);
+				} else {
+					i++;
+				}
+			}
+		}
+	}
+
+	private applyWasmLayout(layout: GG.WasmGraphLayout) {
+		const branchMap: { [color: number]: Branch } = {};
+		const getBranch = (colour: number) => {
+			if (!branchMap[colour]) {
+				const b = new Branch(colour);
+				branchMap[colour] = b;
+				this.branches.push(b);
+			}
+			return branchMap[colour];
+		};
+
+		for (let r = 0; r < layout.rows.length; r++) {
+			const row = layout.rows[r];
+			const vertex = this.vertices[r];
+			if (!vertex) continue;
+
+			const nodeBranch = getBranch(row.node.color);
+			vertex.addToBranch(nodeBranch, row.node.column);
+
+			let maxCol = row.node.column;
+
+			for (let j = 0; j < row.routes.length; j++) {
+				const route = row.routes[j];
+				const routeBranch = getBranch(route.color);
+				routeBranch.addLine(
+					{ x: route.from_col, y: r },
+					{ x: route.to_col, y: r + 1 },
+					vertex.getIsCommitted(),
+					route.from_col < route.to_col
+				);
+				if (route.from_col > maxCol) maxCol = route.from_col;
+				if (route.to_col > maxCol) maxCol = route.to_col;
+			}
+
+			for (let c = 0; c <= maxCol; c++) {
+				vertex.registerUnavailablePoint(c, null, nodeBranch);
 			}
 		}
 	}
