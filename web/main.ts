@@ -7,6 +7,7 @@ class GitGraphView {
 	private gitStashes: ReadonlyArray<GG.GitStash> = [];
 	private gitTags: ReadonlyArray<string> = [];
 	private commits: GG.GitCommit[] = [];
+	private wasmCommits: any[] = [];
 	private commitHead: string | null = null;
 	private commitLookup: { [hash: string]: number } = {};
 	private onlyFollowFirstParent: boolean = false;
@@ -388,7 +389,22 @@ class GitGraphView {
 
 		this.saveState();
 
-		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent);
+		this.wasmCommits = new Array(this.commits.length);
+		for (let c = 0; c < this.commits.length; c++) {
+			const cmt = this.commits[c];
+			this.wasmCommits[c] = {
+				hash: cmt.hash,
+				abbreviated_hash: cmt.hash.substring(0, 7),
+				parents: cmt.parents,
+				author: { name: cmt.author, email: cmt.email },
+				committer: { name: cmt.author, email: cmt.email },
+				message: cmt.message,
+				summary: cmt.message.split('\n')[0],
+				date: new Date(cmt.date * 1000).toISOString()
+			};
+		}
+
+		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent, this.wasmCommits);
 		this.render();
 
 		if (currentRepoLoading && this.config.onRepoLoad.scrollToHead && this.commitHead !== null) {
@@ -565,6 +581,10 @@ class GitGraphView {
 
 	public getCommits(): ReadonlyArray<GG.GitCommit> {
 		return this.commits;
+	}
+
+	public getWasmCommits(): ReadonlyArray<any> {
+		return this.wasmCommits;
 	}
 
 	private getPushRemote(branch: string | null = null) {

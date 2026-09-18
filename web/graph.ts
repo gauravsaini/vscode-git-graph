@@ -390,7 +390,7 @@ class Graph {
 
 	/* Graph Operations */
 
-	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean) {
+	public loadCommits(commits: ReadonlyArray<GG.GitCommit>, commitHead: string | null, commitLookup: { [hash: string]: number }, onlyFollowFirstParent: boolean, wasmCommitsInput?: ReadonlyArray<any>) {
 		this.commits = commits;
 		this.commitHead = commitHead;
 		this.commitLookup = commitLookup;
@@ -432,19 +432,24 @@ class Graph {
 		let usedWasm = false;
 		if (typeof wasm_bindgen !== 'undefined' && typeof wasm_bindgen.generate_layout_js === 'function') {
 			try {
-				const wasmCommits = new Array(commits.length);
-				for (let c = 0; c < commits.length; c++) {
-					const commit = commits[c];
-					wasmCommits[c] = {
-						hash: commit.hash,
-						abbreviated_hash: commit.hash.substring(0, 7),
-						parents: commit.parents,
-						author: { name: commit.author, email: commit.email },
-						committer: { name: commit.author, email: commit.email },
-						message: commit.message,
-						summary: commit.message.split('\n')[0],
-						date: new Date(commit.date * 1000).toISOString()
-					};
+				let wasmCommits: any;
+				if (wasmCommitsInput && wasmCommitsInput.length === commits.length) {
+					wasmCommits = wasmCommitsInput;
+				} else {
+					wasmCommits = new Array(commits.length);
+					for (let c = 0; c < commits.length; c++) {
+						const commit = commits[c];
+						wasmCommits[c] = {
+							hash: commit.hash,
+							abbreviated_hash: commit.hash.substring(0, 7),
+							parents: commit.parents,
+							author: { name: commit.author, email: commit.email },
+							committer: { name: commit.author, email: commit.email },
+							message: commit.message,
+							summary: commit.message.split('\n')[0],
+							date: new Date(commit.date * 1000).toISOString()
+						};
+					}
 				}
 				const wasmRefs = {
 					head: commitHead ? { Detached: commitHead } : undefined,

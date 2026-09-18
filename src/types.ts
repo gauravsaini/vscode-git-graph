@@ -230,6 +230,7 @@ export interface GitGraphViewInitialState {
 	readonly loadRepoInfoRefreshId: number;
 	readonly loadCommitsRefreshId: number;
 	readonly wasmUri?: string;
+	readonly wasmJsUri?: string;
 	readonly wasmBase64?: string;
 }
 

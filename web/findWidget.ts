@@ -231,13 +231,33 @@ class FindWidget {
 
 				// Search the commit data itself to detect commits that match, so that dom tree traversal is performed on matching commit rows (for performance)
 				const commits = this.view.getCommits();
+				let wasmMatchSet: { [index: number]: boolean } | null = null;
+				if (!workspaceState.findIsRegex && typeof wasm_bindgen !== 'undefined' && typeof wasm_bindgen.filter_commits_js === 'function') {
+					try {
+						const wasmCommits = this.view.getWasmCommits();
+						if (wasmCommits && wasmCommits.length === commits.length) {
+							const matchingIndices: number[] = wasm_bindgen.filter_commits_js(wasmCommits, {
+								text_query: this.text,
+								case_sensitive: workspaceState.findIsCaseSensitive
+							});
+							wasmMatchSet = {};
+							for (let m = 0; m < matchingIndices.length; m++) {
+								wasmMatchSet[matchingIndices[m]] = true;
+							}
+						}
+					} catch (e) {
+					}
+				}
+
 				for (let i = 0; i < commits.length; i++) {
 					commit = commits[i];
+					const isWasmMatch = Boolean(wasmMatchSet && wasmMatchSet[i]);
 					let branchLabels = getBranchLabels(commit.heads, commit.remotes);
 					if (commit.hash !== UNCOMMITTED && (
-						(colVisibility.author && findPattern.test(commit.author))
+						isWasmMatch
+						|| (colVisibility.author && findPattern.test(commit.author))
 						|| (colVisibility.commit && (commit.hash.search(findPattern) === 0 || findPattern.test(abbrevCommit(commit.hash))))
-						|| findPattern.test(commit.message)
+						|| (!isWasmMatch && findPattern.test(commit.message))
 						|| branchLabels.heads.some(head => findPattern!.test(head.name) || head.remotes.some(remote => findPattern!.test(remote)))
 						|| branchLabels.remotes.some(remote => findPattern!.test(remote.name))
 						|| commit.tags.some(tag => findPattern!.test(tag.name))

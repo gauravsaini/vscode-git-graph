@@ -701,6 +701,7 @@ export class GitGraphView extends Disposable {
 			loadRepoInfoRefreshId: this.loadRepoInfoRefreshId,
 			loadCommitsRefreshId: this.loadCommitsRefreshId,
 			wasmUri: this.getMediaUri('git_graph_wasm_bg.wasm').toString(),
+			wasmJsUri: this.getMediaUri('git_graph_wasm.js').toString(),
 			wasmBase64: (() => {
 				try {
 					const wasmPath = path.join(this.extensionPath, 'media', 'git_graph_wasm_bg.wasm');

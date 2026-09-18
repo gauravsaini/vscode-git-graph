@@ -128,6 +128,8 @@ declare global {
 		readonly initSync: (options: { module: any }) => any;
 		readonly generate_layout_js: (commits: any, refs: any, config: any) => GG.WasmGraphLayout;
 		readonly render_svg: (layout: string, config: string) => string;
+		readonly render_lanes_svg_js?: (layout: any, config: any) => string;
+		readonly filter_commits_js?: (commits: any, query: any) => number[];
 	}
 
 	const wasm_bindgen: WasmBindgenApi | undefined;
