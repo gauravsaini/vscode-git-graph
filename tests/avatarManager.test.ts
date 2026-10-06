@@ -10,6 +10,7 @@ jest.mock('../src/logger');
 import * as fs from 'fs';
 import { ClientRequest, IncomingMessage } from 'http';
 import * as https from 'https';
+import * as url from 'url';
 import { URL } from 'url';
 import { ConfigurationChangeEvent } from 'vscode';
 import { AvatarEvent, AvatarManager } from '../src/avatarManager';
@@ -27,6 +28,8 @@ let logger: Logger;
 let dataSource: DataSource;
 let extensionState: ExtensionState;
 let spyOnSaveAvatar: jest.SpyInstance, spyOnRemoveAvatarFromCache: jest.SpyInstance, spyOnHttpsGet: jest.SpyInstance, spyOnWriteFile: jest.SpyInstance, spyOnReadFile: jest.SpyInstance, spyOnLog: jest.SpyInstance, spyOnGetRemoteUrl: jest.SpyInstance;
+
+const gitHubAvatarUrl = url.parse('https://avatar-url&size=162');
 
 beforeAll(() => {
 	onDidChangeConfiguration = new EventEmitter<ConfigurationChangeEvent>();
@@ -134,8 +137,8 @@ describe('AvatarManager', () => {
 					timeout: 15000
 				}, expect.anything());
 				expect(spyOnHttpsGet).toHaveBeenCalledWith({
-					hostname: 'avatar-url',
-					path: '/&size=162',
+					hostname: gitHubAvatarUrl.hostname,
+					path: gitHubAvatarUrl.path,
 					headers: { 'User-Agent': 'vscode-git-graph' },
 					agent: false,
 					timeout: 15000
@@ -184,8 +187,8 @@ describe('AvatarManager', () => {
 					timeout: 15000
 				}, expect.anything());
 				expect(spyOnHttpsGet).toHaveBeenCalledWith({
-					hostname: 'avatar-url',
-					path: '/&size=162',
+					hostname: gitHubAvatarUrl.hostname,
+					path: gitHubAvatarUrl.path,
 					headers: { 'User-Agent': 'vscode-git-graph' },
 					agent: false,
 					timeout: 15000
@@ -303,8 +306,8 @@ describe('AvatarManager', () => {
 					timeout: 15000
 				}, expect.anything());
 				expect(spyOnHttpsGet).toHaveBeenCalledWith({
-					hostname: 'avatar-url',
-					path: '/&size=162',
+					hostname: gitHubAvatarUrl.hostname,
+					path: gitHubAvatarUrl.path,
 					headers: { 'User-Agent': 'vscode-git-graph' },
 					agent: false,
 					timeout: 15000

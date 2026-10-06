@@ -215,112 +215,92 @@ class FindWidget {
 		this.position = -1;
 
 		if (this.text !== '') {
-			let colVisibility = this.view.getColumnVisibility(), findPattern: RegExp | null, findGlobalPattern: RegExp | null;
-			const regexText = workspaceState.findIsRegex ? this.text : this.text.replace(/[\\\[\](){}|.*+?^$]/g, '\\$&'), flags = 'u' + (workspaceState.findIsCaseSensitive ? '' : 'i');
-			try {
-				findPattern = new RegExp(regexText, flags);
-				findGlobalPattern = new RegExp(regexText, 'g' + flags);
-				this.widgetElem.removeAttribute(ATTR_ERROR);
-			} catch (e) {
-				findPattern = null;
-				findGlobalPattern = null;
-				this.widgetElem.setAttribute(ATTR_ERROR, e.message);
+			let colVisibility = this.view.getColumnVisibility();
+			const commits = this.view.getCommits();
+			const wasmCommits = this.view.getWasmCommits();
+
+			let filterResult: CommitFilterResult;
+			if (typeof CommitFilterFallback !== 'undefined') {
+				filterResult = CommitFilterFallback.filter(commits, {
+					query: this.text,
+					isRegex: workspaceState.findIsRegex,
+					isCaseSensitive: workspaceState.findIsCaseSensitive,
+					columnVisibility: colVisibility,
+					wasmCommits: wasmCommits
+				});
+			} else {
+				filterResult = this.filterFallback(commits, {
+					query: this.text,
+					isRegex: workspaceState.findIsRegex,
+					isCaseSensitive: workspaceState.findIsCaseSensitive,
+					columnVisibility: colVisibility,
+					wasmCommits: wasmCommits
+				});
 			}
-			if (findPattern !== null && findGlobalPattern !== null) {
-				let commitElems = getCommitElems(), j = 0, commit, zeroLengthMatch = false;
 
-				// Search the commit data itself to detect commits that match, so that dom tree traversal is performed on matching commit rows (for performance)
-				const commits = this.view.getCommits();
-				let wasmMatchSet: { [index: number]: boolean } | null = null;
-				if (!workspaceState.findIsRegex && typeof wasm_bindgen !== 'undefined' && typeof wasm_bindgen.filter_commits_js === 'function') {
-					try {
-						const wasmCommits = this.view.getWasmCommits();
-						if (wasmCommits && wasmCommits.length === commits.length) {
-							const matchingIndices: number[] = wasm_bindgen.filter_commits_js(wasmCommits, {
-								text_query: this.text,
-								case_sensitive: workspaceState.findIsCaseSensitive
-							});
-							wasmMatchSet = {};
-							for (let m = 0; m < matchingIndices.length; m++) {
-								wasmMatchSet[matchingIndices[m]] = true;
+			if (filterResult.error !== null) {
+				this.widgetElem.setAttribute(ATTR_ERROR, filterResult.error);
+			} else {
+				this.widgetElem.removeAttribute(ATTR_ERROR);
+			}
+
+			if (filterResult.error === null && filterResult.matches.length > 0) {
+				let commitElems = getCommitElems(), j = 0;
+				const regexText = workspaceState.findIsRegex ? this.text : this.text.replace(/[\\\[\](){}|.*+?^$]/g, '\\$&'), flags = 'u' + (workspaceState.findIsCaseSensitive ? '' : 'i');
+				const findPattern = new RegExp(regexText, flags);
+				const findGlobalPattern = new RegExp(regexText, 'g' + flags);
+
+				for (let m = 0; m < filterResult.matches.length; m++) {
+					const matchItem = filterResult.matches[m];
+					const commit = commits[matchItem.index];
+					let idStr = matchItem.index.toString();
+					while (j < commitElems.length && commitElems[j].dataset.id !== idStr) j++;
+					if (j === commitElems.length) continue;
+
+					this.matches.push({ hash: commit.hash, elem: commitElems[j] });
+
+					// Highlight matches
+					let textElems = getChildNodesWithTextContent(commitElems[j]), textElem;
+					for (let k = 0; k < textElems.length; k++) {
+						textElem = textElems[k];
+						let matchStart = 0, matchEnd = 0, text = textElem.textContent!, match: RegExpExecArray | null;
+						findGlobalPattern.lastIndex = 0;
+						while ((match = findGlobalPattern.exec(text))) {
+							if (match[0].length === 0) {
+								break;
 							}
-						}
-					} catch (e) {
-					}
-				}
-
-				for (let i = 0; i < commits.length; i++) {
-					commit = commits[i];
-					const isWasmMatch = Boolean(wasmMatchSet && wasmMatchSet[i]);
-					let branchLabels = getBranchLabels(commit.heads, commit.remotes);
-					if (commit.hash !== UNCOMMITTED && (
-						isWasmMatch
-						|| (colVisibility.author && findPattern.test(commit.author))
-						|| (colVisibility.commit && (commit.hash.search(findPattern) === 0 || findPattern.test(abbrevCommit(commit.hash))))
-						|| (!isWasmMatch && findPattern.test(commit.message))
-						|| branchLabels.heads.some(head => findPattern!.test(head.name) || head.remotes.some(remote => findPattern!.test(remote)))
-						|| branchLabels.remotes.some(remote => findPattern!.test(remote.name))
-						|| commit.tags.some(tag => findPattern!.test(tag.name))
-						|| (colVisibility.date && findPattern.test(formatShortDate(commit.date).formatted))
-						|| (commit.stash !== null && findPattern.test(commit.stash.selector))
-					)) {
-						let idStr = i.toString();
-						while (j < commitElems.length && commitElems[j].dataset.id !== idStr) j++;
-						if (j === commitElems.length) continue;
-
-						this.matches.push({ hash: commit.hash, elem: commitElems[j] });
-
-						// Highlight matches
-						let textElems = getChildNodesWithTextContent(commitElems[j]), textElem;
-						for (let k = 0; k < textElems.length; k++) {
-							textElem = textElems[k];
-							let matchStart = 0, matchEnd = 0, text = textElem.textContent!, match: RegExpExecArray | null;
-							findGlobalPattern.lastIndex = 0;
-							while (match = findGlobalPattern.exec(text)) {
-								if (match[0].length === 0) {
-									zeroLengthMatch = true;
-									break;
-								}
-								if (matchEnd !== match.index) {
-									// This match isn't immediately after the previous match, or isn't at the beginning of the text
-									if (matchStart !== matchEnd) {
-										// There was a previous match, insert it in a text node
-										textElem.parentNode!.insertBefore(FindWidget.createMatchElem(text.substring(matchStart, matchEnd)), textElem);
-									}
-									// Insert a text node containing the text between the last match and the current match
-									textElem.parentNode!.insertBefore(document.createTextNode(text.substring(matchEnd, match.index)), textElem);
-									matchStart = match.index;
-								}
-								matchEnd = findGlobalPattern.lastIndex;
-							}
-							if (matchEnd > 0) {
-								// There were one or more matches
+							if (matchEnd !== match.index) {
+								// This match isn't immediately after the previous match, or isn't at the beginning of the text
 								if (matchStart !== matchEnd) {
-									// There was a match, insert it in a text node
+									// There was a previous match, insert it in a text node
 									textElem.parentNode!.insertBefore(FindWidget.createMatchElem(text.substring(matchStart, matchEnd)), textElem);
 								}
-								if (matchEnd !== text.length) {
-									// There was some text after last match, update the textElem (the last node of it's parent) to contain the remaining text.
-									textElem.textContent = text.substring(matchEnd);
-								} else {
-									// The last match was at the end of the text, the textElem is no longer required, so delete it
-									textElem.parentNode!.removeChild(textElem);
-								}
+								// Insert a text node containing the text between the last match and the current match
+								textElem.parentNode!.insertBefore(document.createTextNode(text.substring(matchEnd, match.index)), textElem);
+								matchStart = match.index;
 							}
-							if (zeroLengthMatch) break;
+							matchEnd = findGlobalPattern.lastIndex;
 						}
-						if (colVisibility.commit && commit.hash.search(findPattern) === 0 && !findPattern.test(abbrevCommit(commit.hash)) && textElems.length > 0) {
-							// The commit matches on more than the abbreviated commit, so the commit should be highlighted
-							let commitNode = textElems[textElems.length - 1]; // Commit is always the last column if it is visible
-							commitNode.parentNode!.replaceChild(FindWidget.createMatchElem(commitNode.textContent!), commitNode);
+						if (matchEnd > 0) {
+							// There were one or more matches
+							if (matchStart !== matchEnd) {
+								// There was a match, insert it in a text node
+								textElem.parentNode!.insertBefore(FindWidget.createMatchElem(text.substring(matchStart, matchEnd)), textElem);
+							}
+							if (matchEnd !== text.length) {
+								// There was some text after last match, update the textElem (the last node of it's parent) to contain the remaining text.
+								textElem.textContent = text.substring(matchEnd);
+							} else {
+								// The last match was at the end of the text, the textElem is no longer required, so delete it
+								textElem.parentNode!.removeChild(textElem);
+							}
 						}
-						if (zeroLengthMatch) break;
 					}
-				}
-				if (zeroLengthMatch) {
-					this.widgetElem.setAttribute(ATTR_ERROR, 'Cannot use a regular expression which has zero length matches');
-					this.clearMatches();
-					this.matches = [];
+					if (colVisibility.commit && commit.hash.search(findPattern) === 0 && !findPattern.test(abbrevCommit(commit.hash)) && textElems.length > 0) {
+						// The commit matches on more than the abbreviated commit, so the commit should be highlighted
+						let commitNode = textElems[textElems.length - 1]; // Commit is always the last column if it is visible
+						commitNode.parentNode!.replaceChild(FindWidget.createMatchElem(commitNode.textContent!), commitNode);
+					}
 				}
 			}
 		} else {
@@ -421,6 +401,93 @@ class FindWidget {
 				}
 			}
 		}
+	}
+
+	private filterFallback(commits: ReadonlyArray<GG.GitCommit>, options: CommitFilterOptions): CommitFilterResult {
+		if (typeof CommitFilterFallback !== 'undefined') {
+			return CommitFilterFallback.filter(commits, options);
+		}
+		let findPattern: RegExp, findGlobalPattern: RegExp;
+		const regexText = options.isRegex ? options.query : options.query.replace(/[\\\[\](){}|.*+?^$]/g, '\\$&'), flags = 'u' + (options.isCaseSensitive ? '' : 'i');
+		try {
+			findPattern = new RegExp(regexText, flags);
+			findGlobalPattern = new RegExp(regexText, 'g' + flags);
+		} catch (e: any) {
+			return { matches: [], error: e.message };
+		}
+		let wasmMatchSet: { [index: number]: boolean } | null = null;
+		if (!options.isRegex && typeof wasm_bindgen !== 'undefined' && typeof wasm_bindgen.filter_commits_js === 'function') {
+			try {
+				const wasmCommits = options.wasmCommits;
+				if (wasmCommits && wasmCommits.length === commits.length) {
+					const matchingIndices: number[] = wasm_bindgen.filter_commits_js(wasmCommits, {
+						text_query: options.query,
+						case_sensitive: options.isCaseSensitive
+					});
+					wasmMatchSet = {};
+					for (let m = 0; m < matchingIndices.length; m++) {
+						wasmMatchSet[matchingIndices[m]] = true;
+					}
+				}
+			} catch (e) {
+			}
+		}
+		const matches: CommitFilterMatch[] = [];
+		let zeroLengthMatch = false;
+		for (let i = 0; i < commits.length; i++) {
+			const commit = commits[i];
+			const isWasmMatch = Boolean(wasmMatchSet && wasmMatchSet[i]);
+			let branchLabels = getBranchLabels(commit.heads, commit.remotes);
+			if (commit.hash !== UNCOMMITTED && (
+				isWasmMatch
+				|| (options.columnVisibility.author && findPattern.test(commit.author))
+				|| (options.columnVisibility.commit && (commit.hash.search(findPattern) === 0 || findPattern.test(abbrevCommit(commit.hash))))
+				|| (!isWasmMatch && findPattern.test(commit.message))
+				|| branchLabels.heads.some(head => findPattern.test(head.name) || head.remotes.some(remote => findPattern.test(remote)))
+				|| branchLabels.remotes.some(remote => findPattern.test(remote.name))
+				|| commit.tags.some(tag => findPattern.test(tag.name))
+				|| (options.columnVisibility.date && findPattern.test(formatShortDate(commit.date).formatted))
+				|| (commit.stash !== null && findPattern.test(commit.stash.selector))
+			)) {
+				const testStrings: string[] = [commit.message];
+				if (options.columnVisibility.author) testStrings.push(commit.author);
+				if (options.columnVisibility.commit) testStrings.push(abbrevCommit(commit.hash));
+				if (options.columnVisibility.date) testStrings.push(formatShortDate(commit.date).formatted);
+				for (let h = 0; h < branchLabels.heads.length; h++) {
+					testStrings.push(branchLabels.heads[h].name);
+					for (let r = 0; r < branchLabels.heads[h].remotes.length; r++) {
+						testStrings.push(branchLabels.heads[h].remotes[r]);
+					}
+				}
+				for (let r = 0; r < branchLabels.remotes.length; r++) {
+					testStrings.push(branchLabels.remotes[r].name);
+				}
+				for (let t = 0; t < commit.tags.length; t++) {
+					testStrings.push(commit.tags[t].name);
+				}
+				if (commit.stash !== null) {
+					testStrings.push(commit.stash.selector);
+				}
+
+				for (let s = 0; s < testStrings.length; s++) {
+					findGlobalPattern.lastIndex = 0;
+					let execMatch: RegExpExecArray | null;
+					while ((execMatch = findGlobalPattern.exec(testStrings[s])) !== null) {
+						if (execMatch[0].length === 0) {
+							zeroLengthMatch = true;
+							break;
+						}
+					}
+					if (zeroLengthMatch) break;
+				}
+				if (zeroLengthMatch) break;
+				matches.push({ hash: commit.hash, index: i });
+			}
+		}
+		if (zeroLengthMatch) {
+			return { matches: [], error: 'Cannot use a regular expression which has zero length matches' };
+		}
+		return { matches: matches, error: null };
 	}
 
 	/**

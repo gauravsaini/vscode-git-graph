@@ -34,3 +34,16 @@ fs.readdirSync(path.join(SRC_DIRECTORY, ASKPASS_DIRECTORY)).forEach((fileName) =
 		fs.writeFileSync(path.join(OUT_DIRECTORY, ASKPASS_DIRECTORY, fileName), scriptContents);
 	}
 });
+
+// Bundle runtime dependencies into vendor directory
+const VENDOR_DIRECTORY = path.join(OUT_DIRECTORY, 'vendor');
+if (!fs.existsSync(VENDOR_DIRECTORY)) {
+	fs.mkdirSync(VENDOR_DIRECTORY, { recursive: true });
+}
+try {
+	const iconvEntry = require.resolve('iconv-lite');
+	cp.execSync(`npx esbuild --bundle "${iconvEntry}" --platform=node --format=cjs --outfile="${path.join(VENDOR_DIRECTORY, 'iconv-lite.js')}"`, { stdio: 'ignore' });
+} catch (e) {
+	console.warn('Warning: Could not bundle iconv-lite:', e.message);
+}
+

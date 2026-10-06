@@ -6,12 +6,70 @@ class GitGraphView {
 	private gitRemotes: ReadonlyArray<string> = [];
 	private gitStashes: ReadonlyArray<GG.GitStash> = [];
 	private gitTags: ReadonlyArray<string> = [];
-	private commits: GG.GitCommit[] = [];
-	private wasmCommits: any[] = [];
-	private commitHead: string | null = null;
-	private commitLookup: { [hash: string]: number } = {};
-	private onlyFollowFirstParent: boolean = false;
-	private avatars: AvatarImageCollection = {};
+	private readonly commitDataStore: CommitDataStore;
+
+	public get commits(): GG.GitCommit[] {
+		return this.commitDataStore ? this.commitDataStore.getCommits() : [];
+	}
+	public set commits(commits: GG.GitCommit[]) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setCommits(commits);
+		}
+	}
+
+	public get commitLookup(): { [hash: string]: number } {
+		return this.commitDataStore ? this.commitDataStore.getCommitLookup() : {};
+	}
+	public set commitLookup(lookup: { [hash: string]: number }) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setCommitLookup(lookup);
+		}
+	}
+
+	public get commitHead(): string | null {
+		return this.commitDataStore ? this.commitDataStore.getCommitHead() : null;
+	}
+	public set commitHead(head: string | null) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setCommitHead(head);
+		}
+	}
+
+	public get wasmCommits(): any[] {
+		return this.commitDataStore ? this.commitDataStore.getWasmCommits() : [];
+	}
+	public set wasmCommits(wasmCommits: any[]) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setWasmCommits(wasmCommits);
+		}
+	}
+
+	public get avatars(): AvatarImageCollection {
+		return this.commitDataStore ? this.commitDataStore.getAvatars() : {};
+	}
+	public set avatars(avatars: AvatarImageCollection) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setAvatars(avatars);
+		}
+	}
+
+	public get moreCommitsAvailable(): boolean {
+		return this.commitDataStore ? this.commitDataStore.isMoreCommitsAvailable() : false;
+	}
+	public set moreCommitsAvailable(val: boolean) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setMoreCommitsAvailable(val);
+		}
+	}
+
+	public get onlyFollowFirstParent(): boolean {
+		return this.commitDataStore ? this.commitDataStore.getOnlyFollowFirstParent() : false;
+	}
+	public set onlyFollowFirstParent(val: boolean) {
+		if (this.commitDataStore) {
+			this.commitDataStore.setOnlyFollowFirstParent(val);
+		}
+	}
 	private currentBranches: string[] | null = null;
 
 	private currentRepo!: string;
@@ -31,7 +89,6 @@ class GitGraphView {
 	private readonly graph: Graph;
 	private readonly config: Config;
 
-	private moreCommitsAvailable: boolean = false;
 	private expandedCommit: ExpandedCommit | null = null;
 	private maxCommits: number;
 	private scrollTop = 0;
@@ -56,6 +113,9 @@ class GitGraphView {
 	private readonly scrollShadowElem: HTMLElement;
 
 	constructor(viewElem: HTMLElement, prevState: WebViewState | null) {
+		this.commitDataStore = typeof CommitDataStore !== 'undefined'
+			? new CommitDataStore(prevState ? prevState.avatars : undefined)
+			: (null as any);
 		this.gitRepos = initialState.repos;
 		this.config = initialState.config;
 		this.maxCommits = this.config.initialLoadCommits;
@@ -322,17 +382,22 @@ class GitGraphView {
 		const tagsChanged = !arraysStrictlyEqual(this.gitTags, tags);
 		this.gitTags = tags;
 
-		if (!this.currentRepoLoading && !this.currentRepoRefreshState.hard && this.moreCommitsAvailable === moreAvailable && this.onlyFollowFirstParent === onlyFollowFirstParent && this.commitHead === commitHead && commits.length > 0 && arraysEqual(this.commits, commits, (a, b) =>
+		const canFastPath = !this.currentRepoLoading && !this.currentRepoRefreshState.hard && this.moreCommitsAvailable === moreAvailable && this.onlyFollowFirstParent === onlyFollowFirstParent && this.commitHead === commitHead && commits.length > 0 && (this.commitDataStore ? this.commitDataStore.areCommitArraysEqual(commits) : arraysEqual(this.commits, commits, (a, b) =>
 			a.hash === b.hash &&
 			arraysStrictlyEqual(a.heads, b.heads) &&
-			arraysEqual(a.tags, b.tags, (a, b) => a.name === b.name && a.annotated === b.annotated) &&
-			arraysEqual(a.remotes, b.remotes, (a, b) => a.name === b.name && a.remote === b.remote) &&
+			arraysEqual(a.tags, b.tags, (tA, tB) => tA.name === tB.name && tA.annotated === tB.annotated) &&
+			arraysEqual(a.remotes, b.remotes, (rA, rB) => rA.name === rB.name && rA.remote === rB.remote) &&
 			arraysStrictlyEqual(a.parents, b.parents) &&
 			((a.stash === null && b.stash === null) || (a.stash !== null && b.stash !== null && a.stash.selector === b.stash.selector))
-		) && this.renderedGitBranchHead === this.gitBranchHead) {
+		)) && this.renderedGitBranchHead === this.gitBranchHead;
 
+		if (canFastPath) {
 			if (this.commits[0].hash === UNCOMMITTED) {
-				this.commits[0] = commits[0];
+				if (this.commitDataStore) {
+					this.commitDataStore.updateUncommittedChanges(commits[0]);
+				} else {
+					this.commits[0] = commits[0];
+				}
 				this.saveState();
 				this.renderUncommittedChanges();
 				if (this.expandedCommit !== null && this.expandedCommit.commitElem !== null) {
@@ -357,16 +422,20 @@ class GitGraphView {
 
 		const currentRepoLoading = this.currentRepoLoading;
 		this.currentRepoLoading = false;
-		this.moreCommitsAvailable = moreAvailable;
-		this.onlyFollowFirstParent = onlyFollowFirstParent;
-		this.commits = commits;
-		this.commitHead = commitHead;
-		this.commitLookup = {};
+		if (this.commitDataStore) {
+			this.commitDataStore.setCommits(commits, commitHead, moreAvailable, onlyFollowFirstParent);
+		} else {
+			this.moreCommitsAvailable = moreAvailable;
+			this.onlyFollowFirstParent = onlyFollowFirstParent;
+			this.commits = commits;
+			this.commitHead = commitHead;
+			this.commitLookup = CommitDataStore.buildCommitLookup(commits);
+			this.wasmCommits = CommitDataStore.projectWasmCommits(commits);
+		}
 
-		let i: number, expandedCommitVisible = false, expandedCompareWithCommitVisible = false, avatarsNeeded: { [email: string]: string[] } = {}, commit;
+		let i: number, expandedCommitVisible = false, expandedCompareWithCommitVisible = false, commit;
 		for (i = 0; i < this.commits.length; i++) {
 			commit = this.commits[i];
-			this.commitLookup[commit.hash] = i;
 			if (this.expandedCommit !== null) {
 				if (this.expandedCommit.commitHash === commit.hash) {
 					expandedCommitVisible = true;
@@ -374,35 +443,17 @@ class GitGraphView {
 					expandedCompareWithCommitVisible = true;
 				}
 			}
-			if (this.config.fetchAvatars && typeof this.avatars[commit.email] !== 'string' && commit.email !== '') {
-				if (typeof avatarsNeeded[commit.email] === 'undefined') {
-					avatarsNeeded[commit.email] = [commit.hash];
-				} else {
-					avatarsNeeded[commit.email].push(commit.hash);
-				}
-			}
 		}
+
+		const avatarsNeeded = this.commitDataStore
+			? this.commitDataStore.aggregateAvatarsNeeded(this.config.fetchAvatars)
+			: CommitDataStore.aggregateAvatarsNeeded(this.commits, this.avatars, this.config.fetchAvatars);
 
 		if (this.expandedCommit !== null && (!expandedCommitVisible || (this.expandedCommit.compareWithHash !== null && !expandedCompareWithCommitVisible))) {
 			this.closeCommitDetails(false);
 		}
 
 		this.saveState();
-
-		this.wasmCommits = new Array(this.commits.length);
-		for (let c = 0; c < this.commits.length; c++) {
-			const cmt = this.commits[c];
-			this.wasmCommits[c] = {
-				hash: cmt.hash,
-				abbreviated_hash: cmt.hash.substring(0, 7),
-				parents: cmt.parents,
-				author: { name: cmt.author, email: cmt.email },
-				committer: { name: cmt.author, email: cmt.email },
-				message: cmt.message,
-				summary: cmt.message.split('\n')[0],
-				date: new Date(cmt.date * 1000).toISOString()
-			};
-		}
 
 		this.graph.loadCommits(this.commits, this.commitHead, this.commitLookup, this.onlyFollowFirstParent, this.wasmCommits);
 		this.render();
@@ -478,10 +529,14 @@ class GitGraphView {
 
 	private clearCommits() {
 		closeDialogAndContextMenu();
-		this.moreCommitsAvailable = false;
-		this.commits = [];
-		this.commitHead = null;
-		this.commitLookup = {};
+		if (this.commitDataStore) {
+			this.commitDataStore.clear();
+		} else {
+			this.moreCommitsAvailable = false;
+			this.commits = [];
+			this.commitHead = null;
+			this.commitLookup = {};
+		}
 		this.renderedGitBranchHead = null;
 		this.closeCommitDetails(false);
 		this.saveState();
