@@ -1,0 +1,545 @@
+/* ── Enhanced Top Control Bar & Actions Toolbar ───────────────────────────── */
+
+#controls.control-bar,
+.control-bar {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 6px 10px;
+	background-color: var(--vscode-sideBar-background, var(--vscode-editor-background));
+	border-bottom: 1px solid var(--git-graph-border, var(--vscode-panel-border, rgba(128, 128, 128, 0.2)));
+	line-height: normal;
+	text-align: left;
+	flex-shrink: 0;
+}
+
+#controls.control-bar #findBtn,
+#controls.control-bar #terminalBtn,
+#controls.control-bar #settingsBtn,
+#controls.control-bar #fetchBtn,
+#controls.control-bar #refreshBtn {
+	position: relative;
+	top: auto;
+	right: auto;
+	margin-top: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.control-bar-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+}
+
+.control-bar-row-primary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.control-bar-spacer {
+	flex: 1;
+}
+
+.control-bar-row-search {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+}
+
+/* ── Git Actions Toolbar ───────────────────────────────────── */
+.actions-bar {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+	flex-shrink: 0;
+}
+
+.actions-bar.compact,
+.control-bar-row-primary .actions-bar {
+	background-color: transparent;
+	border-bottom: none;
+	padding: 0;
+	margin-right: 4px;
+}
+
+.action-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--vscode-foreground);
+	cursor: pointer;
+	padding: 3px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	font-family: var(--vscode-font-family);
+	transition: background-color 0.15s ease, border-color 0.15s ease;
+	line-height: 1;
+	height: 24px;
+	box-sizing: border-box;
+}
+
+.action-button:hover {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.15));
+	border-color: var(--vscode-toolbar-hoverOutline, transparent);
+}
+
+.action-button:active {
+	opacity: 0.7;
+}
+
+.action-icon {
+	width: 14px;
+	height: 14px;
+	flex-shrink: 0;
+	fill: currentColor;
+}
+
+.action-icon-wrap {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.actions-separator {
+	width: 1px;
+	height: 16px;
+	background-color: var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+	margin: 0 4px;
+	flex-shrink: 0;
+}
+
+.action-button-group {
+	display: inline-flex;
+	align-items: center;
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+	border-radius: 3px;
+	background: transparent;
+	height: 24px;
+}
+
+.action-button-group .action-button {
+	border-radius: 0;
+	border: none;
+	padding: 3px 6px;
+	height: 100%;
+}
+
+.action-button-group .action-button:first-child {
+	border-top-left-radius: 2px;
+	border-bottom-left-radius: 2px;
+}
+
+.action-button-group .action-button:last-child {
+	border-top-right-radius: 2px;
+	border-bottom-right-radius: 2px;
+	border-left: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+}
+
+.actions-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin-left: auto;
+}
+
+/* ── Row 2: Search & Quick Filters ────────────────────────── */
+.search-group {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	position: relative;
+	width: 100%;
+}
+
+.search-input {
+	flex: 1;
+	background-color: var(--vscode-input-background, #1e1e1e);
+	color: var(--vscode-input-foreground, #cccccc);
+	border: 1px solid var(--vscode-input-border, rgba(128, 128, 128, 0.3));
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 12px;
+	outline: none;
+	min-width: 140px;
+	height: 24px;
+	box-sizing: border-box;
+}
+
+.search-input:focus {
+	border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.search-type-select,
+.quick-filter-select {
+	background-color: var(--vscode-dropdown-background, #252526);
+	color: var(--vscode-dropdown-foreground, #cccccc);
+	border: 1px solid var(--vscode-dropdown-border, rgba(128, 128, 128, 0.3));
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 11px;
+	outline: none;
+	cursor: pointer;
+	height: 24px;
+	box-sizing: border-box;
+}
+
+.search-type-select:focus,
+.quick-filter-select:focus {
+	border-color: var(--vscode-focusBorder, #007acc);
+}
+
+.search-count {
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground, #8c8c8c);
+	white-space: nowrap;
+	padding: 0 4px;
+}
+
+/* ── Two-Commit Comparison Banner ─────────────────────────── */
+.comparison-banner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	background: linear-gradient(90deg, rgba(14, 99, 156, 0.3) 0%, rgba(14, 99, 156, 0.12) 100%);
+	border-bottom: 1px solid var(--vscode-focusBorder, #007acc);
+	padding: 6px 14px;
+	font-size: 12px;
+	z-index: 10;
+}
+
+.comparison-banner.hidden {
+	display: none;
+}
+
+.comparison-info {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.comparison-badge {
+	background: var(--vscode-button-background, #0e639c);
+	color: var(--vscode-button-foreground, #ffffff);
+	padding: 2px 6px;
+	border-radius: 3px;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.5px;
+}
+
+.comparison-hashes-text {
+	font-family: var(--vscode-editor-font-family, monospace);
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.comparison-actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.comparison-btn {
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	cursor: pointer;
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+	background: transparent;
+	color: var(--vscode-foreground);
+}
+
+.comparison-btn-primary {
+	background: var(--vscode-button-background, #0e639c);
+	color: var(--vscode-button-foreground, #ffffff);
+	border: none;
+}
+
+.comparison-btn-primary:hover {
+	background: var(--vscode-button-hoverBackground, #1177bb);
+}
+
+.comparison-btn-dismiss {
+	background: transparent;
+	border: none;
+	font-size: 16px;
+	line-height: 1;
+	color: var(--vscode-foreground);
+	cursor: pointer;
+	padding: 0 4px;
+}
+
+.comparison-btn-dismiss:hover {
+	color: var(--vscode-errorForeground, #f48771);
+}
+
+/* ── Modal Dialog Overlay ─────────────────────────────────── */
+.modal-backdrop {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(0, 0, 0, 0.6);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.modal-backdrop.hidden {
+	display: none;
+}
+
+.modal-card {
+	background-color: var(--vscode-editor-background, #1e1e1e);
+	color: var(--vscode-foreground, #cccccc);
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+	border-radius: 6px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+	display: flex;
+	flex-direction: column;
+	max-height: 85vh;
+	box-sizing: border-box;
+}
+
+.modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 16px;
+	border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+}
+
+.modal-title {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--vscode-foreground);
+}
+
+.modal-close-btn {
+	background: transparent;
+	border: none;
+	font-size: 18px;
+	color: var(--vscode-foreground);
+	cursor: pointer;
+	line-height: 1;
+	padding: 0 4px;
+}
+
+.modal-close-btn:hover {
+	color: var(--vscode-errorForeground, #f48771);
+}
+
+.modal-footer {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	padding: 10px 16px;
+	border-top: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+}
+
+.modal-btn {
+	background-color: var(--vscode-button-secondaryBackground, #3a3d41);
+	color: var(--vscode-button-secondaryForeground, #ffffff);
+	border: 1px solid var(--vscode-button-border, transparent);
+	padding: 4px 12px;
+	border-radius: 3px;
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.modal-btn:hover {
+	background-color: var(--vscode-button-secondaryHoverBackground, #45494e);
+}
+
+/* ── Reflog Modal Specifics ───────────────────────────────── */
+.modal-card-reflog {
+	max-width: 900px;
+	width: 92%;
+}
+
+.reflog-body {
+	padding: 0;
+	max-height: calc(85vh - 110px);
+	overflow-y: auto;
+}
+
+.reflog-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+	table-layout: auto;
+}
+
+.reflog-table thead th {
+	position: sticky;
+	top: 0;
+	background-color: var(--vscode-editor-background, #1e1e1e);
+	color: var(--vscode-descriptionForeground, #8c8c8c);
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+	padding: 8px 12px;
+	text-align: left;
+	border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+	z-index: 5;
+}
+
+.reflog-row {
+	border-bottom: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.15));
+	transition: background-color 0.12s ease;
+	cursor: pointer;
+}
+
+.reflog-row:hover {
+	background-color: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.1));
+}
+
+.reflog-row td {
+	padding: 6px 12px;
+	vertical-align: middle;
+}
+
+.reflog-selector-badge {
+	display: inline-block;
+	font-family: var(--vscode-editor-font-family, monospace);
+	font-size: 11px;
+	padding: 2px 6px;
+	border-radius: 3px;
+	background-color: rgba(110, 118, 129, 0.15);
+	color: var(--vscode-foreground);
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+	white-space: nowrap;
+}
+
+.reflog-hash-btn {
+	font-family: var(--vscode-editor-font-family, monospace);
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vscode-textLink-foreground, #3794ff);
+	background: none;
+	border: 1px solid transparent;
+	cursor: pointer;
+	padding: 2px 6px;
+	border-radius: 3px;
+	transition: all 0.12s ease;
+}
+
+.reflog-hash-btn:hover {
+	text-decoration: underline;
+	background-color: rgba(55, 148, 255, 0.12);
+	border-color: rgba(55, 148, 255, 0.3);
+}
+
+.reflog-action-badge {
+	display: inline-block;
+	font-size: 11px;
+	font-weight: 500;
+	padding: 2px 8px;
+	border-radius: 12px;
+	background-color: rgba(110, 118, 129, 0.15);
+	color: var(--vscode-foreground);
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.2));
+	white-space: nowrap;
+}
+
+.reflog-action-badge.action-checkout {
+	background-color: rgba(0, 122, 204, 0.15);
+	color: #4fc1ff;
+	border-color: rgba(0, 122, 204, 0.35);
+}
+
+.reflog-action-badge.action-commit,
+.reflog-action-badge.action-commit-initial {
+	background-color: rgba(78, 201, 176, 0.15);
+	color: #4ec9b0;
+	border-color: rgba(78, 201, 176, 0.35);
+}
+
+.reflog-action-badge.action-commit-amend {
+	background-color: rgba(220, 91, 35, 0.15);
+	color: #ce9178;
+	border-color: rgba(220, 91, 35, 0.35);
+}
+
+.reflog-action-badge.action-rebase,
+.reflog-action-badge.action-rebase-finish,
+.reflog-action-badge.action-rebase-interactive {
+	background-color: rgba(217, 133, 0, 0.15);
+	color: #dcdcaa;
+	border-color: rgba(217, 133, 0, 0.35);
+}
+
+.reflog-action-badge.action-reset {
+	background-color: rgba(241, 76, 76, 0.15);
+	color: #f14c4c;
+	border-color: rgba(241, 76, 76, 0.35);
+}
+
+.reflog-action-badge.action-merge {
+	background-color: rgba(163, 0, 217, 0.15);
+	color: #c586c0;
+	border-color: rgba(163, 0, 217, 0.35);
+}
+
+.reflog-action-badge.action-pull,
+.reflog-action-badge.action-fetch {
+	background-color: rgba(0, 163, 153, 0.15);
+	color: #4ec9b0;
+	border-color: rgba(0, 163, 153, 0.35);
+}
+
+.reflog-action-badge.action-branch {
+	background-color: rgba(0, 133, 217, 0.15);
+	color: #569cd6;
+	border-color: rgba(0, 133, 217, 0.35);
+}
+
+.reflog-desc-cell {
+	max-width: 320px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: var(--vscode-foreground);
+}
+
+.reflog-time-cell {
+	white-space: nowrap;
+	font-size: 11px;
+	color: var(--vscode-descriptionForeground, #8c8c8c);
+}
+
+.reflog-ops-cell {
+	white-space: nowrap;
+	text-align: right;
+}
+
+.reflog-action-btn {
+	background-color: var(--vscode-input-background, rgba(128, 128, 128, 0.1));
+	border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
+	color: var(--vscode-foreground);
+	padding: 3px 8px;
+	border-radius: 3px;
+	font-size: 11px;
+	cursor: pointer;
+	transition: all 0.12s ease;
+}
+
+.reflog-action-btn:hover {
+	background-color: var(--vscode-toolbar-hoverBackground, rgba(128, 128, 128, 0.2));
+	border-color: var(--vscode-focusBorder, #007acc);
+	color: var(--vscode-textLink-foreground, #3794ff);
+}

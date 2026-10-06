@@ -59,6 +59,15 @@ export interface GitSignature {
 	readonly status: GitSignatureStatus;
 }
 
+export interface GitReflogEntry {
+	readonly hash: string;
+	readonly abbreviatedHash: string;
+	readonly selector: string;
+	readonly action: string;
+	readonly description: string;
+	readonly timestamp: number;
+}
+
 export const enum GitConfigLocation {
 	Local = 'local',
 	Global = 'global',
@@ -1143,6 +1152,14 @@ export interface ResponseRenameBranch extends ResponseWithErrorInfo {
 	readonly command: 'renameBranch';
 }
 
+export interface RequestRequestReflog extends RepoRequest {
+	readonly command: 'requestReflog';
+}
+export interface ResponseReflogData extends BaseMessage {
+	readonly command: 'reflogData';
+	readonly entries: ReadonlyArray<GitReflogEntry>;
+}
+
 export interface RequestRescanForRepos extends BaseMessage {
 	readonly command: 'rescanForRepos';
 }
@@ -1323,6 +1340,7 @@ export type RequestMessage =
 	| RequestPushTag
 	| RequestRebase
 	| RequestRenameBranch
+	| RequestRequestReflog
 	| RequestRescanForRepos
 	| RequestResetFileToRevision
 	| RequestResetToCommit
@@ -1385,6 +1403,7 @@ export type ResponseMessage =
 	| ResponsePushStash
 	| ResponsePushTag
 	| ResponseRebase
+	| ResponseReflogData
 	| ResponseRefresh
 	| ResponseRenameBranch
 	| ResponseResetFileToRevision

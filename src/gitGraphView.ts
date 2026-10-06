@@ -538,6 +538,17 @@ export class GitGraphView extends Disposable {
 					error: await this.dataSource.renameBranch(msg.repo, msg.oldName, msg.newName)
 				});
 				break;
+			case 'requestReflog':
+				try {
+					const entries = await this.dataSource.getReflog(msg.repo, 100);
+					this.sendMessage({
+						command: 'reflogData',
+						entries: entries
+					});
+				} catch (err: any) {
+					showErrorMessage('Unable to load reflog: ' + (err && err.message ? err.message : err));
+				}
+				break;
 			case 'rescanForRepos':
 				if (!(await this.repoManager.searchWorkspaceForRepos())) {
 					showErrorMessage('No Git repositories were found in the current workspace.');
@@ -728,21 +739,82 @@ export class GitGraphView extends Disposable {
 		} else if (numRepos > 0) {
 			body = `<body>
 			<div id="view" tabindex="-1">
-				<div id="controls">
-					<span id="repoControl"><span class="unselectable">Repo: </span><div id="repoDropdown" class="dropdown"></div></span>
-					<span id="branchControl"><span class="unselectable">Branches: </span><div id="branchDropdown" class="dropdown"></div></span>
-					<label id="showRemoteBranchesControl"><input type="checkbox" id="showRemoteBranchesCheckbox" tabindex="-1"><span class="customCheckbox"></span>Show Remote Branches</label>
-					<div id="findBtn" title="Find"></div>
-					<div id="terminalBtn" title="Open a Terminal for this Repository"></div>
-					<div id="settingsBtn" title="Repository Settings"></div>
-					<div id="fetchBtn"></div>
-					<div id="refreshBtn"></div>
+				<div id="controls" class="control-bar">
+					<div class="control-bar-row-primary">
+						<span id="repoControl"><span class="unselectable">Repo: </span><div id="repoDropdown" class="dropdown"></div></span>
+						<span id="branchControl"><span class="unselectable">Branches: </span><div id="branchDropdown" class="dropdown"></div></span>
+						<label id="showRemoteBranchesControl"><input type="checkbox" id="showRemoteBranchesCheckbox" tabindex="-1"><span class="customCheckbox"></span>Show Remote Branches</label>
+						<div id="actionsBar" class="actions-bar style-icon-only compact"></div>
+						<div class="control-bar-spacer"></div>
+						<div class="actions-group">
+							<div id="findBtn" title="Find"></div>
+							<div id="terminalBtn" title="Open a Terminal for this Repository"></div>
+							<div id="settingsBtn" title="Repository Settings"></div>
+							<div id="fetchBtn"></div>
+							<div id="refreshBtn"></div>
+						</div>
+					</div>
+					<div class="control-bar-row-search">
+						<div class="search-group">
+							<input type="text" id="searchInput" class="search-input" placeholder="Search commits (query, @author, #hash)..." />
+							<select id="searchTypeSelect" class="search-type-select">
+								<option value="all">All Fields</option>
+								<option value="message">Message</option>
+								<option value="author">Author</option>
+								<option value="hash">Hash</option>
+								<option value="exclude_author">Exclude Author</option>
+							</select>
+							<select id="quickFilterSelect" class="quick-filter-select">
+								<option value="all">Filter: All</option>
+								<option value="my-commits">Filter: My Commits</option>
+								<option value="no-merges">Filter: No Merges</option>
+								<option value="last-7-days">Filter: Last 7 Days</option>
+							</select>
+							<span id="searchCount" class="search-count"></span>
+						</div>
+					</div>
+				</div>
+				<div id="comparisonBanner" class="comparison-banner hidden">
+					<div class="comparison-info">
+						<span class="comparison-badge">COMPARING 2 COMMITS</span>
+						<span id="comparisonHashes" class="comparison-hashes-text"></span>
+					</div>
+					<div class="comparison-actions">
+						<button id="compareDiffBtn" class="comparison-btn comparison-btn-primary">View Combined Diff</button>
+						<button id="compareClearBtn" class="comparison-btn comparison-btn-dismiss" title="Clear Comparison">&times;</button>
+					</div>
 				</div>
 				<div id="content">
 					<div id="commitGraph"></div>
 					<div id="commitTable"></div>
 				</div>
 				<div id="footer"></div>
+			</div>
+			<div id="reflogModal" class="modal-backdrop hidden">
+				<div class="modal-card modal-card-reflog">
+					<div class="modal-header">
+						<h3 class="modal-title">HEAD Reflog History</h3>
+						<button id="reflogModalClose" class="modal-close-btn">&times;</button>
+					</div>
+					<div class="modal-body reflog-body">
+						<table class="reflog-table">
+							<thead>
+								<tr>
+									<th>Ref</th>
+									<th>Commit</th>
+									<th>Action</th>
+									<th>Description</th>
+									<th>Time</th>
+									<th>Ops</th>
+								</tr>
+							</thead>
+							<tbody id="reflogTableBody"></tbody>
+						</table>
+					</div>
+					<div class="modal-footer">
+						<button id="reflogModalDismiss" class="modal-btn">Close</button>
+					</div>
+				</div>
 			</div>
 			<div id="scrollShadow"></div>
 			<script nonce="${nonce}">var initialState = ${JSON.stringify(initialState)}, globalState = ${JSON.stringify(globalState)}, workspaceState = ${JSON.stringify(workspaceState)};</script>

@@ -24,7 +24,7 @@ import {
 	parseRefs,
 	parseRepoConfigBranches
 } from './parsers';
-import { CommitOrdering, DateType, ErrorInfo, GitCommit, GitCommitStash, GitConfigLocation, GitPushBranchMode, GitRepoConfig, GitResetMode, GitSignature, GitStash, MergeActionOn, RebaseActionOn, SquashMessageFormat, TagType } from './types';
+import { CommitOrdering, DateType, ErrorInfo, GitCommit, GitCommitStash, GitConfigLocation, GitPushBranchMode, GitReflogEntry, GitRepoConfig, GitResetMode, GitSignature, GitStash, MergeActionOn, RebaseActionOn, SquashMessageFormat, TagType } from './types';
 import { GitExecutable, GitVersionRequirement, UNABLE_TO_FIND_GIT_MSG, doesVersionMeetRequirement, getPathFromStr, getPathFromUri, openGitTerminal, pathWithTrailingSlash, realpath, resolveSpawnOutput } from './utils';
 import { Disposable } from './utils/disposable';
 import { Event } from './utils/event';
@@ -1174,6 +1174,40 @@ export class DataSource extends Disposable implements GitExecutor {
 	 */
 	public runGitCommand(args: string[], repo: string): Promise<ErrorInfo> {
 		return this._spawnGit(args, repo, () => null).catch((errorMessage: string) => errorMessage);
+	}
+
+	/**
+	 * Get reflog entries for a repository.
+	 * @param repo The repository to get reflog entries for.
+	 * @param maxCount The maximum number of reflog entries to retrieve.
+	 * @returns The reflog entries.
+	 */
+	public getReflog(repo: string, maxCount: number = 100): Promise<GitReflogEntry[]> {
+		const separator = '‖';
+		const format = `%H${separator}%h${separator}%gd${separator}%gs${separator}%at`;
+		return this.spawnGit(['reflog', `--format=${format}`, `--max-count=${maxCount}`], repo, (stdout) => {
+			const entries: GitReflogEntry[] = [];
+			const lines = stdout.split('\n');
+			for (let i = 0; i < lines.length; i++) {
+				const line = lines[i].trim();
+				if (!line) continue;
+				const parts = line.split(separator);
+				if (parts.length < 5) continue;
+				const gsField = parts[3];
+				const colonIdx = gsField.indexOf(':');
+				const action = colonIdx !== -1 ? gsField.substring(0, colonIdx).trim() : gsField;
+				const description = colonIdx !== -1 ? gsField.substring(colonIdx + 1).trim() : '';
+				entries.push({
+					hash: parts[0],
+					abbreviatedHash: parts[1],
+					selector: parts[2],
+					action: action,
+					description: description,
+					timestamp: parseInt(parts[4], 10) || 0
+				});
+			}
+			return entries;
+		});
 	}
 
 	/**

@@ -12,6 +12,8 @@ export interface ColumnVisibility {
 
 export interface MockHtmlElement {
 	tagName: string;
+	id?: string;
+	className?: string;
 	dataset: { [key: string]: string };
 	style: { [key: string]: any; setProperty: (k: string, v: string) => void };
 	classList: {
@@ -29,6 +31,7 @@ export interface MockHtmlElement {
 	value: string;
 	textContent: string;
 	innerHTML: string;
+	title?: string;
 	disabled?: boolean;
 	setAttribute: (k: string, v: string) => void;
 	removeAttribute: (k: string) => void;
@@ -39,6 +42,10 @@ export interface MockHtmlElement {
 	replaceChild: (n: MockNode, o: MockNode) => MockNode;
 	addEventListener: (evt: string, fn: Function) => void;
 	focus: () => void;
+	querySelector: (selector: string) => MockHtmlElement | null;
+	querySelectorAll: (selector: string) => MockHtmlElement[];
+	click: () => void;
+	trigger: (evt: string, data?: any) => void;
 }
 
 export interface MockNode {
@@ -57,6 +64,9 @@ export function createMockElement(tag: string = 'div', textContent: string = '')
 	const attributes: { [key: string]: string } = {};
 	const childElements: MockHtmlElement[] = [];
 	const childNodeList: MockNode[] = [];
+	const eventListeners: { [evt: string]: Function[] } = {};
+	let innerHtmlValue = '';
+	let idValue = '';
 
 	const elem: MockHtmlElement = {
 		tagName: tag.toUpperCase(),
@@ -76,9 +86,49 @@ export function createMockElement(tag: string = 'div', textContent: string = '')
 		nextSibling: null,
 		value: textContent,
 		textContent: textContent,
-		innerHTML: '',
-		setAttribute: (k: string, v: string) => { attributes[k] = v; },
-		removeAttribute: (k: string) => { delete attributes[k]; },
+		get innerHTML(): string {
+			return innerHtmlValue;
+		},
+		set innerHTML(val: string) {
+			innerHtmlValue = val;
+			if (val === '') {
+				childElements.length = 0;
+				childNodeList.length = 0;
+			}
+		},
+		get className(): string {
+			return Array.from(classNames).join(' ');
+		},
+		set className(val: string) {
+			classNames.clear();
+			if (val) {
+				val.trim().split(/\s+/).forEach((c) => {
+					if (c) classNames.add(c);
+				});
+			}
+		},
+		get id(): string {
+			return idValue;
+		},
+		set id(val: string) {
+			idValue = val;
+			attributes['id'] = val;
+		},
+		setAttribute: (k: string, v: string) => {
+			attributes[k] = v;
+			if (k === 'id') idValue = v;
+			if (k === 'class') {
+				classNames.clear();
+				v.trim().split(/\s+/).forEach((c) => {
+					if (c) classNames.add(c);
+				});
+			}
+		},
+		removeAttribute: (k: string) => {
+			delete attributes[k];
+			if (k === 'id') idValue = '';
+			if (k === 'class') classNames.clear();
+		},
 		getAttribute: (k: string) => attributes[k] !== undefined ? attributes[k] : null,
 		appendChild: (child: MockNode) => {
 			child.parentNode = elem;
@@ -91,11 +141,16 @@ export function createMockElement(tag: string = 'div', textContent: string = '')
 		insertBefore: (newChild: MockNode, _refChild: MockNode | null) => {
 			newChild.parentNode = elem;
 			childNodeList.push(newChild);
+			if ((newChild as MockHtmlElement).tagName !== undefined) {
+				childElements.push(newChild as MockHtmlElement);
+			}
 			return newChild;
 		},
 		removeChild: (child: MockNode) => {
 			const idx = childNodeList.indexOf(child);
 			if (idx > -1) childNodeList.splice(idx, 1);
+			const elIdx = childElements.indexOf(child as MockHtmlElement);
+			if (elIdx > -1) childElements.splice(elIdx, 1);
 			return child;
 		},
 		replaceChild: (newChild: MockNode, oldChild: MockNode) => {
@@ -104,10 +159,65 @@ export function createMockElement(tag: string = 'div', textContent: string = '')
 				childNodeList[idx] = newChild;
 				newChild.parentNode = elem;
 			}
+			const elIdx = childElements.indexOf(oldChild as MockHtmlElement);
+			if (elIdx > -1) {
+				childElements[elIdx] = newChild as MockHtmlElement;
+			}
 			return oldChild;
 		},
-		addEventListener: () => {},
-		focus: () => {}
+		addEventListener: (evt: string, fn: Function) => {
+			if (!eventListeners[evt]) eventListeners[evt] = [];
+			eventListeners[evt].push(fn);
+		},
+		focus: () => {},
+		querySelector: (selector: string): MockHtmlElement | null => {
+			const search = (parent: MockHtmlElement): MockHtmlElement | null => {
+				for (const child of parent.children) {
+					if (selector.startsWith('.') && child.classList.contains(selector.substring(1))) {
+						return child;
+					}
+					if (selector.startsWith('#') && child.id === selector.substring(1)) {
+						return child;
+					}
+					if (child.tagName && child.tagName.toLowerCase() === selector.toLowerCase()) {
+						return child;
+					}
+					if (child.children && child.children.length > 0) {
+						const sub = search(child);
+						if (sub) return sub;
+					}
+				}
+				return null;
+			};
+			return search(elem);
+		},
+		querySelectorAll: (selector: string): MockHtmlElement[] => {
+			const results: MockHtmlElement[] = [];
+			const search = (parent: MockHtmlElement) => {
+				for (const child of parent.children) {
+					if (selector.startsWith('.') && child.classList.contains(selector.substring(1))) {
+						results.push(child);
+					} else if (selector.startsWith('#') && child.id === selector.substring(1)) {
+						results.push(child);
+					} else if (child.tagName && child.tagName.toLowerCase() === selector.toLowerCase()) {
+						results.push(child);
+					}
+					if (child.children && child.children.length > 0) {
+						search(child);
+					}
+				}
+			};
+			search(elem);
+			return results;
+		},
+		click: () => {
+			const list = eventListeners['click'] || [];
+			list.forEach((cb) => cb({ stopPropagation: () => {} }));
+		},
+		trigger: (evt: string, data?: any) => {
+			const list = eventListeners[evt] || [];
+			list.forEach((cb) => cb(data || { stopPropagation: () => {} }));
+		}
 	};
 
 	if (textContent !== '') {
@@ -132,6 +242,7 @@ let cachedGraphLayoutJs: string | null = null;
 let cachedGraphWasmBridgeJs: string | null = null;
 let cachedCommitDataStoreJs: string | null = null;
 let cachedCommitFilterFallbackJs: string | null = null;
+let cachedControlBarJs: string | null = null;
 
 export function webScriptExists(fileName: string): boolean {
 	const filePath = path.join(__dirname, '../../../web/', fileName);
@@ -208,6 +319,16 @@ export function getTranspiledWebScript(fileName: string): string {
 			}).outputText;
 		}
 		return cachedCommitFilterFallbackJs;
+	}
+	if (fileName === 'controlBar.ts') {
+		if (!cachedControlBarJs) {
+			const filePath = path.join(__dirname, '../../../web/controlBar.ts');
+			const content = fs.readFileSync(filePath, 'utf8');
+			cachedControlBarJs = ts.transpileModule(content, {
+				compilerOptions: { target: ts.ScriptTarget.ES2017, module: ts.ModuleKind.None }
+			}).outputText;
+		}
+		return cachedControlBarJs;
 	}
 	throw new Error('Unknown script: ' + fileName);
 }
@@ -569,3 +690,170 @@ export function createSampleCommit(overrides: Partial<GitCommit> = {}): GitCommi
 		...overrides
 	};
 }
+export interface ControlBarHarness {
+	controlBar: any;
+	sandbox: any;
+	mockView: any;
+	mockCalls: { [name: string]: any[][] };
+	elements: {
+		actionsBar: MockHtmlElement;
+		searchInput: MockHtmlElement;
+		searchTypeSelect: MockHtmlElement;
+		quickFilterSelect: MockHtmlElement;
+		searchCount: MockHtmlElement;
+		comparisonBanner: MockHtmlElement;
+		comparisonHashes: MockHtmlElement;
+		compareDiffBtn: MockHtmlElement;
+		compareClearBtn: MockHtmlElement;
+		reflogModal: MockHtmlElement;
+		reflogTableBody: MockHtmlElement;
+		reflogModalClose: MockHtmlElement;
+		reflogModalDismiss: MockHtmlElement;
+	};
+}
+
+export function createControlBarHarness(options?: {
+	actionIds?: ReadonlyArray<string>;
+	buttonStyle?: 'iconOnly' | 'textOnly' | 'iconAndText';
+	viewOverrides?: any;
+}): ControlBarHarness {
+	const actionsBar = createMockElement('div');
+	actionsBar.id = 'actionsBar';
+	const searchInput = createMockElement('input');
+	searchInput.id = 'searchInput';
+	const searchTypeSelect = createMockElement('select');
+	searchTypeSelect.id = 'searchTypeSelect';
+	searchTypeSelect.value = 'all';
+	const quickFilterSelect = createMockElement('select');
+	quickFilterSelect.id = 'quickFilterSelect';
+	quickFilterSelect.value = 'all';
+	const searchCount = createMockElement('span');
+	searchCount.id = 'searchCount';
+	const comparisonBanner = createMockElement('div');
+	comparisonBanner.id = 'comparisonBanner';
+	comparisonBanner.classList.add('hidden');
+	const comparisonHashes = createMockElement('span');
+	comparisonHashes.id = 'comparisonHashes';
+	const compareDiffBtn = createMockElement('button');
+	compareDiffBtn.id = 'compareDiffBtn';
+	const compareClearBtn = createMockElement('button');
+	compareClearBtn.id = 'compareClearBtn';
+	const reflogModal = createMockElement('div');
+	reflogModal.id = 'reflogModal';
+	reflogModal.classList.add('hidden');
+	const reflogTableBody = createMockElement('tbody');
+	reflogTableBody.id = 'reflogTableBody';
+	const reflogModalClose = createMockElement('button');
+	reflogModalClose.id = 'reflogModalClose';
+	const reflogModalDismiss = createMockElement('button');
+	reflogModalDismiss.id = 'reflogModalDismiss';
+
+	const elements: { [id: string]: MockHtmlElement } = {
+		actionsBar,
+		searchInput,
+		searchTypeSelect,
+		quickFilterSelect,
+		searchCount,
+		comparisonBanner,
+		comparisonHashes,
+		compareDiffBtn,
+		compareClearBtn,
+		reflogModal,
+		reflogTableBody,
+		reflogModalClose,
+		reflogModalDismiss
+	};
+
+	const mockDocument = {
+		createElement: (tag: string) => createMockElement(tag),
+		body: createMockElement('body'),
+		getElementById: (id: string) => {
+			if (elements[id]) return elements[id];
+			const found = actionsBar.querySelector('#' + id);
+			if (found) return found;
+			const el = createMockElement('div');
+			el.id = id;
+			elements[id] = el;
+			return el;
+		},
+		createTextNode: (t: string) => ({
+			textContent: t,
+			childNodes: [],
+			children: [],
+			parentNode: null,
+			previousSibling: null,
+			nextSibling: null
+		})
+	};
+
+	const sandbox: any = {
+		acquireVsCodeApi: () => ({ getState: () => null, setState: () => {}, postMessage: () => {} }),
+		document: mockDocument,
+		window: { addEventListener: () => {} },
+		abbrevCommit: (h: string) => h.substring(0, 8),
+		console,
+		Date
+	};
+
+	vm.createContext(sandbox);
+
+	const utilsJs = getTranspiledWebScript('utils.ts');
+	vm.runInContext(utilsJs, sandbox);
+
+	const controlBarJs = getTranspiledWebScript('controlBar.ts');
+	vm.runInContext(controlBarJs, sandbox);
+
+	const ControlBarClass = vm.runInContext('ControlBar', sandbox);
+
+	const mockCalls: { [name: string]: any[][] } = {};
+	const record = (name: string) => (...args: any[]) => {
+		if (!mockCalls[name]) mockCalls[name] = [];
+		mockCalls[name].push(args);
+	};
+
+	const mockView: any = {
+		fetchFromRemotesAction: record('fetchFromRemotesAction'),
+		pullAction: record('pullAction'),
+		pushAction: record('pushAction'),
+		createBranchActionFromToolbar: record('createBranchActionFromToolbar'),
+		createTagActionFromToolbar: record('createTagActionFromToolbar'),
+		squashActionFromToolbar: record('squashActionFromToolbar'),
+		stashActionFromToolbar: record('stashActionFromToolbar'),
+		requestReflogAction: record('requestReflogAction'),
+		openTerminalAction: record('openTerminalAction'),
+		applyFilters: record('applyFilters'),
+		viewCombinedDiffAction: record('viewCombinedDiffAction'),
+		clearComparisonAction: record('clearComparisonAction'),
+		scrollToCommit: record('scrollToCommit'),
+		checkoutCommitAction: record('checkoutCommitAction'),
+		...(options?.viewOverrides || {})
+	};
+
+	const controlBar = new ControlBarClass(mockView);
+	if (options?.actionIds || options?.buttonStyle) {
+		controlBar.renderToolbar(options.actionIds, options.buttonStyle);
+	}
+
+	return {
+		controlBar,
+		sandbox,
+		mockView,
+		mockCalls,
+		elements: {
+			actionsBar,
+			searchInput,
+			searchTypeSelect,
+			quickFilterSelect,
+			searchCount,
+			comparisonBanner,
+			comparisonHashes,
+			compareDiffBtn,
+			compareClearBtn,
+			reflogModal,
+			reflogTableBody,
+			reflogModalClose,
+			reflogModalDismiss
+		}
+	};
+}
+
